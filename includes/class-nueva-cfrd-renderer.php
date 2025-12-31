@@ -268,7 +268,18 @@ class Nueva_CFRD_Renderer
 
     private function render_grid()
     {
-        echo '<div class="nueva-cfrd-grid" style="display: grid; grid-template-columns: repeat(' . esc_attr($this->atts['columns']) . ', 1fr); gap: 20px;">';
+        $style = 'display: grid; gap: 20px;';
+        // Only apply inline columns if NOT simple manual mode (Elementor handles its own columns via CSS)
+        // Actually, if it's Elementor, it passes 'columns' too, but we want CSS to win.
+        // Let's assume if 'columns' is set, we use it, BUT Elementor's CSS should invoke !important or we avoid inline.
+
+        // Better: If we have a config_id (Shortcode Builder), use inline.
+        // If we don't (Elementor), skip inline columns so responsive controls work.
+        if (!empty($this->config_id) || empty($this->atts['class']) || strpos($this->atts['class'], 'elementor') === false) {
+            $style .= ' grid-template-columns: repeat(' . esc_attr($this->atts['columns']) . ', 1fr);';
+        }
+
+        echo '<div class="nueva-cfrd-grid" style="' . $style . '">';
         foreach ($this->data as $item) {
             $this->render_item_card($item);
         }
