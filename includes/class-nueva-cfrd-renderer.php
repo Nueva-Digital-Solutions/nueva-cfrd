@@ -615,6 +615,8 @@ class Nueva_CFRD_Renderer
             return;
         }
 
+        $rendered_count = 0;
+
         // If sub_fields are configured (from Builder), use them to filter and order
         if (!empty($this->atts['sub_fields']) && is_array($this->atts['sub_fields'])) {
             foreach ($this->atts['sub_fields'] as $field_config) {
@@ -629,10 +631,13 @@ class Nueva_CFRD_Renderer
                     echo '<strong class="nueva-label">' . esc_html(ucfirst(str_replace('_', ' ', $key))) . ': </strong>';
                     echo '<span class="nueva-value">' . $this->format_value($value) . '</span>';
                     echo '</div>';
+                    $rendered_count++;
                 }
             }
-        } else {
-            // Fallback: Show all fields (Legacy behavior)
+        }
+
+        // Fallback: If no sub-fields matched (or none configured), show all fields (Legacy behavior)
+        if ($rendered_count === 0) {
             foreach ($item as $key => $value) {
                 if (in_array($key, $exclude_keys))
                     continue;
