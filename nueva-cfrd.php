@@ -10,21 +10,35 @@
  * License: GPLv2 or later
  */
 
-if ( ! defined( 'ABSPATH' ) ) {
-	exit;
+if (!defined('ABSPATH')) {
+    exit;
 }
 
 // Define Constants
-define( 'NUEVA_CFRD_VERSION', '1.0.0' );
-define( 'NUEVA_CFRD_PATH', plugin_dir_path( __FILE__ ) );
-define( 'NUEVA_CFRD_URL', plugin_dir_url( __FILE__ ) );
+define('NUEVA_CFRD_VERSION', '1.0.0');
+define('NUEVA_CFRD_PATH', plugin_dir_path(__FILE__));
+define('NUEVA_CFRD_URL', plugin_dir_url(__FILE__));
 
 // Include Core Class
 require_once NUEVA_CFRD_PATH . 'includes/class-nueva-cfrd-core.php';
+require_once NUEVA_CFRD_PATH . 'includes/class-nueva-cfrd-cpt.php';
+
+if (is_admin()) {
+    require_once NUEVA_CFRD_PATH . 'includes/class-nueva-cfrd-admin.php';
+}
 
 // Initialize Plugin
-function nueva_cfrd_init() {
-	$plugin = new Nueva_CFRD_Core();
-	$plugin->run();
+function nueva_cfrd_init()
+{
+    $plugin = new Nueva_CFRD_Core();
+    $plugin->run();
+
+    $cpt = new Nueva_CFRD_CPT();
+    $cpt->run();
+
+    if (is_admin()) {
+        $admin = new Nueva_CFRD_Admin();
+        $admin->run();
+    }
 }
-add_action( 'plugins_loaded', 'nueva_cfrd_init' );
+add_action('plugins_loaded', 'nueva_cfrd_init');

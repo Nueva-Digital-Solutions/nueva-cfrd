@@ -1,0 +1,75 @@
+/* Admin Builder Styles */
+.nueva-admin-container {
+    max-width: 1200px;
+    background: #fff;
+    padding: 20px;
+    border: 1px solid #ccd0d4;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
+}
+
+.nueva-section {
+    margin-bottom: 30px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 20px;
+}
+
+.nueva-section:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+}
+
+.nueva-section-title {
+    font-size: 1.3em;
+    margin-bottom: 15px;
+    color: #23282d;
+    border-left: 4px solid #0073aa;
+    padding-left: 10px;
+}
+
+.nueva-form-row {
+    margin-bottom: 15px;
+}
+
+.nueva-form-row.two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.nueva-form-row.three-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 20px;
+}
+
+.nueva-form-row label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 5px;
+}
+
+/* Field Repeater UI */
+.nueva-field-row {
+    background: #f9f9f9;
+    border: 1px solid #e5e5e5;
+    margin-bottom: 15px;
+    border-radius: 4px;
+}
+
+.nueva-field-header {
+    padding: 10px 15px;
+    background: #f1f1f1;
+    border-bottom: 1px solid #e5e5e5;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: move;
+}
+
+.nueva-field-body {
+    padding: 15px;
+}
+
+#nueva-add-field {
+    margin-top: 10px;
+}
