@@ -131,10 +131,32 @@ class Nueva_CFRD_Renderer
 
     private function fetch_data()
     {
-        if ($this->atts['type'] === 'acf' && function_exists('get_field')) {
-            $this->data = get_field($this->atts['field'], $this->atts['post_id']);
-        } else {
-            $meta = get_post_meta($this->atts['post_id'], $this->atts['field'], true);
+        $post_id = $this->atts['post_id'];
+        $field = $this->atts['field'];
+
+        // 1. Try ACF (get_field)
+        if (function_exists('get_field')) {
+            // Try specific Post ID
+            $this->data = get_field($field, $post_id);
+
+            // If empty, usually means:
+            // a) Wrong ID
+            // b) Field Name wrong
+            // c) It's actually an Option Page field
+            // d) Empty data
+
+            // Fallback: Check 'option' (Common user error: detecting from option page but rendering on post)
+            if (empty($this->data)) {
+                $option_data = get_field($field, 'option');
+                if (!empty($option_data) && is_array($option_data)) {
+                    $this->data = $option_data;
+                }
+            }
+        }
+
+        // 2. Fallback: get_post_meta (Serialized Arrays)
+        if (empty($this->data)) {
+            $meta = get_post_meta($post_id, $field, true);
             if (is_serialized($meta)) {
                 $this->data = unserialize($meta);
             } elseif (is_array($meta)) {
