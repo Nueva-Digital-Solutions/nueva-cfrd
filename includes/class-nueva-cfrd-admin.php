@@ -134,6 +134,18 @@ class Nueva_CFRD_Admin
             <!-- TAB 1: CONFIGURATION -->
             <div id="tab-config" class="nueva-tab-content active">
 
+                <!-- Diagnostic Info (Temporary) -->
+                <div style="background:#e6f7ff; border:1px solid #1890ff; padding:10px; margin-bottom:15px; border-radius:4px;">
+                    <strong>🔍 Diagnostic Info:</strong><br>
+                    Editing Layout ID: <code><?php echo $post->ID; ?></code><br>
+                    <strong>Saved Repeater Check:</strong> The database currently has:
+                    <code
+                        style="font-size:1.2em; background:#fff; padding:2px 5px; font-weight:bold;"><?php echo esc_html($field_name ? $field_name : '(empty)'); ?></code>
+                    <br><small>If this does not match "Repeater Field Name" below, click <strong>Update</strong>.</small>
+                    <br><small>On your frontend page, make sure your shortcode is:
+                        <code>[nueva_cfrd id="<?php echo $post->ID; ?>"]</code></small>
+                </div>
+
                 <!-- Data Source -->
                 <div class="nueva-section">
                     <h3 class="nueva-section-title">Data Source</h3>
@@ -154,7 +166,8 @@ class Nueva_CFRD_Admin
                                         <optgroup label="Option Pages">
                                             <?php foreach ($pages as $slug => $page): ?>
                                                 <option value="option_<?php echo esc_attr($slug); ?>">
-                                                    <?php echo esc_html($page['page_title']); ?></option>
+                                                    <?php echo esc_html($page['page_title']); ?>
+                                                </option>
                                             <?php endforeach; ?>
                                         </optgroup>
                                     <?php endif;
@@ -257,8 +270,8 @@ class Nueva_CFRD_Admin
         </div>
 
         <script type="text/template" id="nueva-field-template">
-                    <?php $this->render_sub_field_row('{{INDEX}}', array()); ?>
-                </script>
+                            <?php $this->render_sub_field_row('{{INDEX}}', array()); ?>
+                        </script>
         <?php
     }
 
