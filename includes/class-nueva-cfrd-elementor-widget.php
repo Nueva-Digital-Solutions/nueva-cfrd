@@ -143,6 +143,144 @@ class Nueva_CFRD_Elementor_Widget extends \Elementor\Widget_Base
         );
 
         $this->end_controls_section();
+
+        // --- STYLE TAB ---
+
+        $this->start_controls_section(
+            'style_section',
+            [
+                'label' => esc_html__('Items Style', 'nueva-cfrd'),
+                'tab' => \Elementor\Controls_Manager::TAB_STYLE,
+            ]
+        );
+
+        $this->add_control(
+            'item_bg_color',
+            [
+                'label' => esc_html__('Background Color', 'nueva-cfrd'),
+                'type' => \Elementor\Controls_Manager::COLOR,
+                'selectors' => [
+                    '{{WRAPPER}} .nueva-card-builder' => 'background-color: {{VALUE}}',
+                    '{{WRAPPER}} .nueva-cfrd-item' => 'background-color: {{VALUE}}', // fallback pattern
+                ],
+            ]
+        );
+
+        $this->add_group_control(
+            \Elementor\Group_Control_Border::get_type(),
+            [
+                'name' => 'item_border',
+                'selector' => '{{WRAPPER}} .nueva-card-builder, {{WRAPPER}} .nueva-cfrd-item',
+            ]
+        );
+
+        $this->add_control(
+            'item_border_radius',
+            [
+                'label' => esc_html__('Border Radius', 'nueva-cfrd'),
+                'type' => \Elementor\Controls_Manager::DIMENSIONS,
+                'size_units' => ['px', '%'],
+                'selectors' => [
+                    '{{WRAPPER}} .nueva-card-builder' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                    '{{WRAPPER}} .nueva-cfrd-item' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                ],
+            ]
+        );
+
+        $this->add_group_control(
+            \Elementor\Group_Control_Box_Shadow::get_type(),
+            [
+                'name' => 'item_box_shadow',
+                'selector' => '{{WRAPPER}} .nueva-card-builder, {{WRAPPER}} .nueva-cfrd-item',
+            ]
+        );
+
+        $this->add_responsive_control(
+            'item_padding',
+            [
+                'label' => esc_html__('Padding', 'nueva-cfrd'),
+                'type' => \Elementor\Controls_Manager::DIMENSIONS,
+                'size_units' => ['px', 'em', '%'],
+                'selectors' => [
+                    '{{WRAPPER}} .nueva-card-builder' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                    '{{WRAPPER}} .nueva-cfrd-item' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                ],
+            ]
+        );
+
+        $this->add_responsive_control(
+            'grid_gap',
+            [
+                'label' => esc_html__('Gap', 'nueva-cfrd'),
+                'type' => \Elementor\Controls_Manager::SLIDER,
+                'size_units' => ['px'],
+                'range' => [
+                    'px' => [
+                        'min' => 0,
+                        'max' => 100,
+                    ],
+                ],
+                'selectors' => [
+                    '{{WRAPPER}} .nueva-cfrd-grid' => 'gap: {{SIZE}}{{UNIT}};',
+                    '{{WRAPPER}} .nueva-cfrd-list' => 'gap: {{SIZE}}{{UNIT}};',
+                ],
+            ]
+        );
+
+        // Grid Columns Control (Responsive)
+        $this->add_responsive_control(
+            'grid_columns',
+            [
+                'label' => esc_html__('Grid Columns', 'nueva-cfrd'),
+                'type' => \Elementor\Controls_Manager::NUMBER,
+                'min' => 1,
+                'max' => 6,
+                'devices' => ['desktop', 'tablet', 'mobile'],
+                'desktop_default' => 3,
+                'tablet_default' => 2,
+                'mobile_default' => 1,
+                'selectors' => [
+                    '{{WRAPPER}} .nueva-cfrd-grid' => 'grid-template-columns: repeat({{VALUE}}, 1fr);',
+                ],
+                'condition' => [
+                    'layout_type' => 'grid',
+                ],
+            ]
+        );
+
+
+        $this->end_controls_section();
+
+        $this->start_controls_section(
+            'typography_section',
+            [
+                'label' => esc_html__('Typography', 'nueva-cfrd'),
+                'tab' => \Elementor\Controls_Manager::TAB_STYLE,
+            ]
+        );
+
+        $this->add_group_control(
+            \Elementor\Group_Control_Typography::get_type(),
+            [
+                'name' => 'value_typography',
+                'label' => 'Text Typography',
+                'selector' => '{{WRAPPER}} .nueva-value',
+            ]
+        );
+
+        $this->add_control(
+            'value_color',
+            [
+                'label' => esc_html__('Text Color', 'nueva-cfrd'),
+                'type' => \Elementor\Controls_Manager::COLOR,
+                'selectors' => [
+                    '{{WRAPPER}} .nueva-value' => 'color: {{VALUE}}',
+                ],
+            ]
+        );
+
+        $this->end_controls_section();
+
     }
 
     protected function render()
