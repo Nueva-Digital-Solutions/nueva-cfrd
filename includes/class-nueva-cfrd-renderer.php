@@ -652,8 +652,23 @@ class Nueva_CFRD_Renderer
             }
         }
 
-        // Fallback: If no sub-fields matched (or none configured), show all fields (Legacy behavior)
         if ($rendered_count === 0) {
+
+            // Debug: Explain WHY we are here (Admin Only)
+            if (current_user_can('edit_posts') && !empty($this->atts['sub_fields'])) {
+                $requested = [];
+                foreach ($this->atts['sub_fields'] as $sf) {
+                    $requested[] = is_array($sf) ? $sf['name'] : $sf;
+                }
+                $available = array_keys($item);
+
+                echo '<div style="background:#fff3cd; color:#856404; padding:5px; font-size:12px; border:1px solid #ffeeba; margin-bottom:5px;">';
+                echo '<strong>⚠️ Debug (Admin Only):</strong> No data found for requested sub-fields: <code>' . implode(', ', $requested) . '</code>.<br>';
+                echo 'Available fields in this item: <code>' . implode(', ', $available) . '</code>.<br>';
+                echo '<em>Displaying all fields as fallback. Correct your Elementor "Field Key" setting.</em>';
+                echo '</div>';
+            }
+
             foreach ($item as $key => $value) {
                 if (in_array($key, $exclude_keys))
                     continue;
