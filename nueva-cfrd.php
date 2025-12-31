@@ -28,6 +28,8 @@ if (is_admin()) {
 }
 
 // Initialize Plugin
+function nueva_cfrd_init()
+{
     $plugin = new Nueva_CFRD_Core();
     $plugin->run();
 
