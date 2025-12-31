@@ -44,9 +44,22 @@ function nueva_cfrd_init()
 add_action('plugins_loaded', 'nueva_cfrd_init');
 
 // Register Elementor Widget
+// Register Elementor Widgets
 function nueva_register_elementor_widgets($widgets_manager)
 {
-    require_once(__DIR__ . '/includes/class-nueva-cfrd-elementor-widget.php');
-    $widgets_manager->register(new \Nueva_CFRD_Elementor_Widget());
+    require_once NUEVA_CFRD_PATH . 'includes/widgets/class-nueva-cfrd-widget-base.php';
+    require_once NUEVA_CFRD_PATH . 'includes/widgets/class-nueva-cfrd-widget-grid.php';
+    require_once NUEVA_CFRD_PATH . 'includes/widgets/class-nueva-cfrd-widget-list.php';
+    require_once NUEVA_CFRD_PATH . 'includes/widgets/class-nueva-cfrd-widget-table.php';
+    require_once NUEVA_CFRD_PATH . 'includes/widgets/class-nueva-cfrd-widget-accordion.php';
+    require_once NUEVA_CFRD_PATH . 'includes/widgets/class-nueva-cfrd-widget-slider.php';
+    require_once NUEVA_CFRD_PATH . 'includes/widgets/class-nueva-cfrd-widget-custom.php';
+
+    $widgets_manager->register(new \Nueva_CFRD_Widget_Grid());
+    $widgets_manager->register(new \Nueva_CFRD_Widget_List());
+    $widgets_manager->register(new \Nueva_CFRD_Widget_Table());
+    $widgets_manager->register(new \Nueva_CFRD_Widget_Accordion());
+    $widgets_manager->register(new \Nueva_CFRD_Widget_Slider());
+    $widgets_manager->register(new \Nueva_CFRD_Widget_Custom());
 }
 add_action('elementor/widgets/register', 'nueva_register_elementor_widgets');
