@@ -644,9 +644,11 @@ class Nueva_CFRD_Renderer
                 if (is_array($field_config)) {
                     $target_key = strtolower(trim($field_config['name'] ?? ''));
                     $type = $field_config['type'] ?? 'text';
+                    $custom_style = $field_config['style'] ?? '';
                 } else {
                     $target_key = strtolower(trim($field_config));
                     $type = 'text';
+                    $custom_style = '';
                 }
 
                 if (!$target_key || in_array($target_key, $exclude_keys))
@@ -658,7 +660,9 @@ class Nueva_CFRD_Renderer
 
                     echo '<div class="nueva-field nueva-field-' . esc_attr($target_key) . '">';
                     // Label removed permanently
-                    echo '<span class="nueva-value">' . $this->format_value($value, $type) . '</span>';
+                    // Apply Custom Style Inline
+                    $style_attr = $custom_style ? ' style="' . esc_attr($custom_style) . '"' : '';
+                    echo '<span class="nueva-value"' . $style_attr . '>' . $this->format_value($value, $type) . '</span>';
                     echo '</div>';
                     $rendered_count++;
                 }
