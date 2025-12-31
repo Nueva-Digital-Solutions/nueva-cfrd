@@ -42,3 +42,11 @@ function nueva_cfrd_init()
     }
 }
 add_action('plugins_loaded', 'nueva_cfrd_init');
+
+// Register Elementor Widget
+function nueva_register_elementor_widgets($widgets_manager)
+{
+    require_once(__DIR__ . '/includes/class-nueva-cfrd-elementor-widget.php');
+    $widgets_manager->register(new \Nueva_CFRD_Elementor_Widget());
+}
+add_action('elementor/widgets/register', 'nueva_register_elementor_widgets');
