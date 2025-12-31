@@ -3,12 +3,40 @@
 class Nueva_CFRD_Renderer
 {
 
-    private $atts;
-    private $data;
+    private $config_id;
+    private $styles_css = '';
 
     public function __construct($atts)
     {
-        $this->atts = $atts;
+        // 1. Check if ID exists
+        if (!empty($atts['id'])) {
+            $this->config_id = $atts['id'];
+            // Load config from Post Meta
+            $field = get_post_meta($this->config_id, 'nueva_field_name', true);
+            $layout = get_post_meta($this->config_id, 'nueva_layout_type', true);
+            $columns = get_post_meta($this->config_id, 'nueva_columns', true);
+
+            // Defaults if saved config is missing
+            $defaults = array(
+                'field' => $field,
+                'layout' => $layout ?: 'grid',
+                'columns' => $columns ?: '3',
+            );
+
+            $this->atts = shortcode_atts(
+                array_merge(array(
+                    'post_id' => get_the_ID(),
+                    'type' => 'acf',
+                    'class' => '',
+                    'id' => '',
+                ), $defaults),
+                $atts
+            );
+
+        } else {
+            // Legacy/Manual Mode (No ID)
+            $this->atts = $atts;
+        }
     }
 
     public function render()
@@ -16,11 +44,28 @@ class Nueva_CFRD_Renderer
         $this->fetch_data();
 
         if (empty($this->data)) {
-            return '<!-- Nueva CFRD: No data found for field ' . esc_html($this->atts['field']) . ' -->';
+            if (current_user_can('edit_posts')) {
+                return '<div style="background:#fff3cd; color:#856404; padding:10px; border:1px solid #ffeeba;">Nueva CFRD: No data found for field <strong>' . esc_html($this->atts['field']) . '</strong> on Post ID ' . $this->atts['post_id'] . '. Check if the field name is correct and has data.</div>';
+            }
+            return '';
+        }
+
+        // Generate Dynamic Styles if using Builder
+        if (!empty($this->config_id)) {
+            $this->generate_styles();
         }
 
         ob_start();
-        echo '<div class="nueva-cfrd-wrapper ' . esc_attr($this->atts['class']) . ' nueva-layout-' . esc_attr($this->atts['layout']) . '" data-layout="' . esc_attr($this->atts['layout']) . '">';
+
+        if (!empty($this->styles_css)) {
+            echo '<style>' . $this->styles_css . '</style>';
+        }
+
+        $wrapper_class = 'nueva-cfrd-wrapper ' . esc_attr($this->atts['class']) . ' nueva-layout-' . esc_attr($this->atts['layout']);
+        if (!empty($this->config_id))
+            $wrapper_class .= ' nueva-id-' . $this->config_id;
+
+        echo '<div class="' . $wrapper_class . '" data-layout="' . esc_attr($this->atts['layout']) . '">';
 
         switch ($this->atts['layout']) {
             case 'list':

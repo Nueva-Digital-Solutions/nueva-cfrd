@@ -1,45 +1,66 @@
 /* Admin Builder Styles */
 .nueva-admin-container {
-    max-width: 1200px;
     background: #fff;
-    padding: 20px;
     border: 1px solid #ccd0d4;
     box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
 }
 
-.nueva-section {
-    margin-bottom: 30px;
-    border-bottom: 1px solid #eee;
-    padding-bottom: 20px;
+/* Tabs */
+.nueva-tabs {
+    display: flex;
+    background: #f1f1f1;
+    border-bottom: 1px solid #ddd;
 }
 
-.nueva-section:last-child {
-    border-bottom: none;
-    margin-bottom: 0;
+.nueva-tab-link {
+    padding: 15px 25px;
+    cursor: pointer;
+    font-weight: 600;
+    color: #555;
+    background: #f1f1f1;
+    border-right: 1px solid #ddd;
+    text-decoration: none;
+}
+
+.nueva-tab-link:hover {
+    background: #f9f9f9;
+    color: #000;
+}
+
+.nueva-tab-link.active {
+    background: #fff;
+    border-bottom: 1px solid transparent;
+    margin-bottom: -1px;
+    /* Overlap border */
+    color: #0073aa;
+}
+
+.nueva-tab-content {
+    display: none;
+    padding: 20px;
+}
+
+.nueva-tab-content.active {
+    display: block;
+}
+
+/* Form Layouts */
+.nueva-section {
+    margin-bottom: 30px;
 }
 
 .nueva-section-title {
-    font-size: 1.3em;
-    margin-bottom: 15px;
-    color: #23282d;
-    border-left: 4px solid #0073aa;
-    padding-left: 10px;
+    font-size: 1.1em;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    color: #888;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 5px;
 }
 
 .nueva-form-row {
     margin-bottom: 15px;
-}
-
-.nueva-form-row.two-col {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
-}
-
-.nueva-form-row.three-col {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 20px;
 }
 
 .nueva-form-row label {
@@ -48,28 +69,30 @@
     margin-bottom: 5px;
 }
 
-/* Field Repeater UI */
-.nueva-field-row {
-    background: #f9f9f9;
-    border: 1px solid #e5e5e5;
-    margin-bottom: 15px;
-    border-radius: 4px;
-}
-
-.nueva-field-header {
-    padding: 10px 15px;
-    background: #f1f1f1;
-    border-bottom: 1px solid #e5e5e5;
+/* Quad Input (TRBL) */
+.nueva-quad-input {
     display: flex;
+    gap: 5px;
     align-items: center;
-    justify-content: space-between;
-    cursor: move;
 }
 
-.nueva-field-body {
+.nueva-quad-input input {
+    width: 60px !important;
+    text-align: center;
+}
+
+.nueva-quad-label {
+    font-size: 10px;
+    color: #aaa;
+    text-align: center;
+    text-transform: uppercase;
+}
+
+/* Auto Discovery Box */
+.nueva-discovery-box {
+    background: #f0f6fc;
+    border: 1px solid #cce5ff;
     padding: 15px;
-}
-
-#nueva-add-field {
-    margin-top: 10px;
+    margin-bottom: 20px;
+    border-radius: 4px;
 }

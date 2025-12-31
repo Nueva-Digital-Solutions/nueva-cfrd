@@ -8,6 +8,7 @@ class Nueva_CFRD_Admin
         add_action('add_meta_boxes', array($this, 'add_meta_boxes'));
         add_action('save_post', array($this, 'save_meta'));
         add_action('admin_enqueue_scripts', array($this, 'enqueue_admin_assets'));
+        add_action('wp_ajax_nueva_fetch_fields', array($this, 'ajax_fetch_fields'));
     }
 
     public function enqueue_admin_assets($hook)
@@ -18,29 +19,41 @@ class Nueva_CFRD_Admin
 
         wp_enqueue_style('nueva-admin-css', NUEVA_CFRD_URL . 'assets/css/admin.css', array(), NUEVA_CFRD_VERSION);
         wp_enqueue_script('nueva-admin-js', NUEVA_CFRD_URL . 'assets/js/admin.js', array('jquery', 'wp-color-picker'), NUEVA_CFRD_VERSION, true);
+        wp_localize_script('nueva-admin-js', 'nueva_vars', array('ajax_url' => admin_url('admin-ajax.php')));
         wp_enqueue_style('wp-color-picker');
+    }
+
+    public function ajax_fetch_fields()
+    {
+        // (Same logic as before, abbreviated here for brevity if allowed, but including full for correctness)
+        $post_id = intval($_POST['post_id']);
+        if (!$post_id)
+            wp_send_json_error('Invalid Post ID');
+        $all_meta = get_post_meta($post_id);
+        $repeaters = array();
+        foreach ($all_meta as $key => $values) {
+            if (strpos($key, '_') === 0)
+                continue;
+            $val = $values[0];
+            $data = @unserialize($val);
+            if ($data === false && is_serialized($val))
+                $data = unserialize($val);
+            if (is_array($data) && !empty($data) && is_array($data[0])) {
+                $sub_keys = array_keys($data[0]);
+                $repeaters[$key] = $sub_keys;
+            }
+        }
+        wp_send_json_success($repeaters);
     }
 
     public function add_meta_boxes()
     {
-        add_meta_box(
-            'nueva_cfrd_config',
-            'Layout Configuration',
-            array($this, 'render_meta_box'),
-            'nueva_layout',
-            'normal',
-            'high'
-        );
-
-        add_meta_box(
-            'nueva_cfrd_shortcode',
-            'Generate Shortcode',
-            array($this, 'render_shortcode_box'),
-            'nueva_layout',
-            'side',
-            'high'
-        );
+        add_meta_box('nueva_cfrd_main', 'Layout Builder', array($this, 'render_main_box'), 'nueva_layout', 'normal', 'high');
+        add_meta_box('nueva_cfrd_shortcode', 'Generate Shortcode', array($this, 'render_shortcode_box'), 'nueva_layout', 'side', 'high');
+        add_meta_box('nueva_cfrd_classes', 'CSS Class Reference', array($this, 'render_classes_box'), 'nueva_layout', 'side', 'default');
     }
+
+    // --- Helper Views ---
 
     public function render_shortcode_box($post)
     {
@@ -50,152 +63,216 @@ class Nueva_CFRD_Admin
         echo '</div>';
     }
 
-    public function render_meta_box($post)
+    public function render_classes_box($post)
+    {
+        echo '<ul>';
+        echo '<li><code>.nueva-card-builder</code> - Card Container</li>';
+        echo '<li><code>.nueva-field-{index}</code> - Field Item</li>';
+        echo '<li><code>:hover</code> - Hover State</li>';
+        echo '</ul>';
+    }
+
+    // --- MAIN RENDERER ---
+
+    public function render_main_box($post)
     {
         wp_nonce_field('nueva_cfrd_save_data', 'nueva_cfrd_meta_nonce');
 
+        // Load Data
         $field_name = get_post_meta($post->ID, 'nueva_field_name', true);
         $layout_type = get_post_meta($post->ID, 'nueva_layout_type', true) ?: 'grid';
         $columns = get_post_meta($post->ID, 'nueva_columns', true) ?: '3';
-        $container = get_post_meta($post->ID, 'nueva_container_styles', true) ?: array();
         $sub_fields = get_post_meta($post->ID, 'nueva_sub_fields', true) ?: array();
+        $custom_css = get_post_meta($post->ID, 'nueva_custom_css', true);
+
+        // Style Config (Array of normal/hover)
+        $style_config = get_post_meta($post->ID, 'nueva_style_config', true);
+        $style_normal = $style_config['normal'] ?? [];
+        $style_hover = $style_config['hover'] ?? [];
         ?>
 
         <div class="nueva-admin-container">
 
-            <!-- General Settings -->
-            <div class="nueva-section">
-                <h3 class="nueva-section-title">Data Source</h3>
-                <div class="nueva-form-row">
-                    <label>Repeater Field Name (ACF Name)</label>
-                    <input type="text" name="nueva_field_name" value="<?php echo esc_attr($field_name); ?>" class="widefat"
-                        placeholder="e.g. team_members">
-                </div>
+            <!-- Tabs Nav -->
+            <div class="nueva-tabs">
+                <a href="#" class="nueva-tab-link active" data-tab="tab-config">1. Configuration</a>
+                <a href="#" class="nueva-tab-link" data-tab="tab-styling">2. Styling (Global)</a>
+                <a href="#" class="nueva-tab-link" data-tab="tab-css">3. Custom CSS</a>
             </div>
 
-            <!-- Layout Settings -->
-            <div class="nueva-section">
-                <h3 class="nueva-section-title">Display Settings</h3>
-                <div class="nueva-form-row two-col">
-                    <div>
-                        <label>Layout Type</label>
-                        <select name="nueva_layout_type" class="widefat">
-                            <?php
-                            $layouts = ['grid', 'list', 'slider', 'accordion', 'card-deck', 'masonry', 'timeline', 'master-detail'];
-                            foreach ($layouts as $l) {
-                                echo '<option value="' . $l . '" ' . selected($layout_type, $l, false) . '>' . ucfirst($l) . '</option>';
-                            }
-                            ?>
-                        </select>
+            <!-- TAB 1: CONFIGURATION -->
+            <div id="tab-config" class="nueva-tab-content active">
+
+                <!-- Data Source -->
+                <div class="nueva-section">
+                    <h3 class="nueva-section-title">Data Source</h3>
+                    <div class="nueva-discovery-box">
+                        <strong>Autodetect Fields:</strong>
+                        <input type="number" id="nueva-demo-post-id" class="small-text" placeholder="Post ID">
+                        <button type="button" class="button button-secondary" id="nueva-fetch-fields-btn">Detect</button>
+                        <span id="nueva-fetch-status"></span>
                     </div>
-                    <div>
-                        <label>Columns (Grid/Masonry)</label>
-                        <input type="number" name="nueva_columns" value="<?php echo esc_attr($columns); ?>" max="12" min="1"
-                            class="widefat">
+                    <div class="nueva-form-row">
+                        <label>Repeater Field Name</label>
+                        <div style="display:flex; gap:10px;">
+                            <input type="text" name="nueva_field_name" id="nueva_field_name"
+                                value="<?php echo esc_attr($field_name); ?>" class="widefat">
+                            <select id="nueva_detected_repeaters" style="display:none;"></select>
+                        </div>
                     </div>
                 </div>
+
+                <!-- Layout -->
+                <div class="nueva-section">
+                    <h3 class="nueva-section-title">Layout</h3>
+                    <div class="nueva-form-row two-col">
+                        <div>
+                            <label>Layout Type</label>
+                            <select name="nueva_layout_type" class="widefat">
+                                <?php foreach (['grid', 'list', 'slider', 'accordion', 'card-deck', 'masonry', 'timeline', 'master-detail'] as $l)
+                                    echo '<option value="' . $l . '" ' . selected($layout_type, $l, false) . '>' . ucfirst($l) . '</option>'; ?>
+                            </select>
+                        </div>
+                        <div>
+                            <label>Columns (Grid)</label>
+                            <input type="number" name="nueva_columns" value="<?php echo esc_attr($columns); ?>" max="12"
+                                min="1" class="widefat">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sub Fields Repeater (Simplified) -->
+                <div class="nueva-section">
+                    <h3 class="nueva-section-title">Sub Fields (Content)</h3>
+                    <div id="nueva-sub-fields-wrapper">
+                        <?php if (!empty($sub_fields))
+                            foreach ($sub_fields as $i => $f)
+                                $this->render_sub_field_row($i, $f); ?>
+                    </div>
+                    <button type="button" class="button button-primary" id="nueva-add-field">Add Sub Field</button>
+                </div>
+
             </div>
 
-            <!-- Container Styles -->
-            <div class="nueva-section">
-                <h3 class="nueva-section-title">Container Styling</h3>
-                <div class="nueva-form-row three-col">
-                    <div>
-                        <label>Padding (e.g. 20px)</label>
-                        <input type="text" name="nueva_container_styles[padding]"
-                            value="<?php echo esc_attr($container['padding'] ?? ''); ?>" class="widefat">
-                    </div>
-                    <div>
-                        <label>Background Color</label>
-                        <input type="text" name="nueva_container_styles[bg_color]"
-                            value="<?php echo esc_attr($container['bg_color'] ?? ''); ?>" class="nueva-color-picker">
-                    </div>
-                    <div>
-                        <label>Border Radius (px)</label>
-                        <input type="number" name="nueva_container_styles[radius]"
-                            value="<?php echo esc_attr($container['radius'] ?? ''); ?>" class="widefat">
-                    </div>
+            <!-- TAB 2: STYLING -->
+            <div id="tab-styling" class="nueva-tab-content">
+
+                <div style="margin-bottom:20px; text-align:center;">
+                    <button type="button" class="button button-secondary nueva-style-state-tab active"
+                        data-state="normal">Normal State</button>
+                    <button type="button" class="button button-secondary nueva-style-state-tab" data-state="hover">Hover
+                        State</button>
                 </div>
+
+                <!-- Normal State -->
+                <div class="nueva-style-state-content nueva-style-state-normal">
+                    <?php $this->render_style_inputs('normal', $style_normal); ?>
+                </div>
+
+                <!-- Hover State -->
+                <div class="nueva-style-state-content nueva-style-state-hover" style="display:none;">
+                    <?php $this->render_style_inputs('hover', $style_hover); ?>
+                </div>
+
             </div>
 
-            <!-- Field Mapping & Styling -->
-            <div class="nueva-section">
-                <h3 class="nueva-section-title">Sub Fields & Styling</h3>
-                <p class="description">Add the sub-fields you want to display and style them.</p>
-
-                <div id="nueva-sub-fields-wrapper">
-                    <?php
-                    if (!empty($sub_fields)) {
-                        foreach ($sub_fields as $index => $field) {
-                            $this->render_sub_field_row($index, $field);
-                        }
-                    }
-                    ?>
-                </div>
-
-                <button type="button" class="button button-primary" id="nueva-add-field">Add Sub Field</button>
+            <!-- TAB 3: CUSTOM CSS -->
+            <div id="tab-css" class="nueva-tab-content">
+                <textarea name="nueva_custom_css" class="widefat" rows="15"
+                    style="font-family:monospace; background:#2d2d2d; color:#fff;"><?php echo esc_textarea($custom_css); ?></textarea>
             </div>
 
         </div>
 
-        <!-- Template for JS -->
         <script type="text/template" id="nueva-field-template">
                     <?php $this->render_sub_field_row('{{INDEX}}', array()); ?>
                 </script>
-
         <?php
     }
 
     private function render_sub_field_row($index, $field)
     {
         $name = $field['name'] ?? '';
-        $label = $field['label'] ?? ''; // e.g. Title, Subtitle, Meta
-        $color = $field['color'] ?? '';
-        $size = $field['size'] ?? '';
-        $weight = $field['weight'] ?? '';
         $tag = $field['tag'] ?? 'div';
         ?>
-        <div class="nueva-field-row" data-index="<?php echo esc_attr($index); ?>">
-            <div class="nueva-field-header">
-                <span class="dashicons dashicons-sort"></span>
-                <strong>Field Item</strong>
-                <button type="button" class="button-link nueva-remove-field" style="color: #b32d2e;">Remove</button>
+        <div class="nueva-field-row">
+            <div class="nueva-form-row three-col" style="margin-bottom:0;">
+                <div><input type="text" name="nueva_sub_fields[<?php echo $index; ?>][name]"
+                        value="<?php echo esc_attr($name); ?>" class="widefat" placeholder="Field Key"></div>
+                <div>
+                    <select name="nueva_sub_fields[<?php echo $index; ?>][tag]" class="widefat">
+                        <?php foreach (['div', 'h1', 'h2', 'h3', 'h4', 'p', 'span', 'img', 'a'] as $t)
+                            echo '<option value="' . $t . '" ' . selected($tag, $t, false) . '>' . strtoupper($t) . '</option>'; ?>
+                    </select>
+                </div>
+                <div style="text-align:right;"><button type="button" class="button-link nueva-remove-field"
+                        style="color:red;">Remove</button></div>
             </div>
-            <div class="nueva-field-body">
-                <div class="nueva-form-row three-col">
-                    <div>
-                        <label>Sub Field Name (Key)</label>
-                        <input type="text" name="nueva_sub_fields[<?php echo $index; ?>][name]"
-                            value="<?php echo esc_attr($name); ?>" class="widefat" placeholder="e.g. item_title">
-                    </div>
-                    <div>
-                        <label>HTML Tag</label>
-                        <select name="nueva_sub_fields[<?php echo $index; ?>][tag]" class="widefat">
-                            <?php foreach (['h1', 'h2', 'h3', 'h4', 'div', 'p', 'span', 'img'] as $t)
-                                echo '<option value="' . $t . '" ' . selected($tag, $t, false) . '>' . strtoupper($t) . '</option>'; ?>
-                        </select>
-                    </div>
-                    <div>
-                        <label>Font Size (px)</label>
-                        <input type="number" name="nueva_sub_fields[<?php echo $index; ?>][size]"
-                            value="<?php echo esc_attr($size); ?>" class="widefat">
-                    </div>
+        </div>
+        <?php
+    }
+
+    private function render_style_inputs($state, $vals)
+    {
+        $prefix = "nueva_style_config[$state]";
+        $fonts = ['Roboto', 'Open Sans', 'Lato', 'Montserrat', 'Oswald', 'Source Sans Pro', 'Slabo 27px', 'Raleway', 'PT Sans', 'Merriweather', 'Noto Sans', 'Nunito', 'Concert One', 'Poppins', 'Playfair Display'];
+        ?>
+
+        <div class="nueva-section">
+            <h4 class="nueva-section-title">Typography & Colors</h4>
+            <div class="nueva-form-row three-col">
+                <div>
+                    <label>Font Family</label>
+                    <select name="<?php echo $prefix; ?>[font_family]" class="widefat">
+                        <option value="">Default</option>
+                        <?php foreach ($fonts as $f)
+                            echo '<option value="' . $f . '" ' . selected($vals['font_family'] ?? '', $f, false) . '>' . $f . '</option>'; ?>
+                    </select>
                 </div>
-                <div class="nueva-form-row three-col">
-                    <div>
-                        <label>Text Color</label>
-                        <input type="text" name="nueva_sub_fields[<?php echo $index; ?>][color]"
-                            value="<?php echo esc_attr($color); ?>" class="nueva-color-picker">
-                    </div>
-                    <div>
-                        <label>Font Weight</label>
-                        <select name="nueva_sub_fields[<?php echo $index; ?>][weight]" class="widefat">
-                            <option value="normal" <?php selected($weight, 'normal'); ?>>Normal</option>
-                            <option value="bold" <?php selected($weight, 'bold'); ?>>Bold</option>
-                            <option value="600" <?php selected($weight, '600'); ?>>Semibold</option>
-                        </select>
-                    </div>
+                <div>
+                    <label>Text Color</label>
+                    <input type="text" name="<?php echo $prefix; ?>[color]" value="<?php echo esc_attr($vals['color'] ?? ''); ?>"
+                        class="nueva-color-picker">
                 </div>
+                <div>
+                    <label>Background Color</label>
+                    <input type="text" name="<?php echo $prefix; ?>[bg_color]"
+                        value="<?php echo esc_attr($vals['bg_color'] ?? ''); ?>" class="nueva-color-picker">
+                </div>
+            </div>
+        </div>
+
+        <div class="nueva-section">
+            <h4 class="nueva-section-title">Box Model (Top / Right / Bottom / Left)</h4>
+
+            <div class="nueva-form-row">
+                <label>Margin (px)</label>
+                <div class="nueva-quad-input">
+                    <?php foreach (['top', 'right', 'bottom', 'left'] as $s)
+                        echo '<input type="number" placeholder="' . ucfirst($s) . '" name="' . $prefix . '[margin][' . $s . ']" value="' . esc_attr($vals['margin'][$s] ?? '') . '">'; ?>
+                </div>
+            </div>
+
+            <div class="nueva-form-row">
+                <label>Padding (px)</label>
+                <div class="nueva-quad-input">
+                    <?php foreach (['top', 'right', 'bottom', 'left'] as $s)
+                        echo '<input type="number" placeholder="' . ucfirst($s) . '" name="' . $prefix . '[padding][' . $s . ']" value="' . esc_attr($vals['padding'][$s] ?? '') . '">'; ?>
+                </div>
+            </div>
+
+            <div class="nueva-form-row">
+                <label>Border Width (px)</label>
+                <div class="nueva-quad-input">
+                    <?php foreach (['top', 'right', 'bottom', 'left'] as $s)
+                        echo '<input type="number" placeholder="' . ucfirst($s) . '" name="' . $prefix . '[border][' . $s . ']" value="' . esc_attr($vals['border'][$s] ?? '') . '">'; ?>
+                </div>
+            </div>
+
+            <div class="nueva-form-row">
+                <label>Border Color</label>
+                <input type="text" name="<?php echo $prefix; ?>[border_color]"
+                    value="<?php echo esc_attr($vals['border_color'] ?? ''); ?>" class="nueva-color-picker">
             </div>
         </div>
         <?php
@@ -203,30 +280,19 @@ class Nueva_CFRD_Admin
 
     public function save_meta($post_id)
     {
-        if (!isset($_POST['nueva_cfrd_meta_nonce']) || !wp_verify_nonce($_POST['nueva_cfrd_meta_nonce'], 'nueva_cfrd_save_data')) {
+        if (!isset($_POST['nueva_cfrd_meta_nonce']) || !wp_verify_nonce($_POST['nueva_cfrd_meta_nonce'], 'nueva_cfrd_save_data'))
             return;
-        }
-
         if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE)
             return;
         if (!current_user_can('edit_post', $post_id))
             return;
 
-        // Save fields
-        $fields_to_save = [
-            'nueva_field_name',
-            'nueva_layout_type',
-            'nueva_columns',
-            'nueva_container_styles',
-            'nueva_sub_fields'
-        ];
-
-        foreach ($fields_to_save as $field) {
-            if (isset($_POST[$field])) {
+        $fields = ['nueva_field_name', 'nueva_layout_type', 'nueva_columns', 'nueva_sub_fields', 'nueva_custom_css', 'nueva_style_config'];
+        foreach ($fields as $field) {
+            if (isset($_POST[$field]))
                 update_post_meta($post_id, $field, $_POST[$field]);
-            } else {
+            else
                 delete_post_meta($post_id, $field);
-            }
         }
     }
 }
