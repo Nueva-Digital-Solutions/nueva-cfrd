@@ -45,7 +45,28 @@ class Nueva_CFRD_Renderer
 
         if (empty($this->data)) {
             if (current_user_can('edit_posts')) {
-                return '<div style="background:#fff3cd; color:#856404; padding:10px; border:1px solid #ffeeba;">Nueva CFRD: No data found for field <strong>' . esc_html($this->atts['field']) . '</strong> on Post ID ' . $this->atts['post_id'] . '. Check if the field name is correct and has data.</div>';
+                $msg = 'Nueva CFRD: No data found for field <strong>' . esc_html($this->atts['field']) . '</strong> on Post ID ' . $this->atts['post_id'] . '.';
+
+                // Smart Suggestion
+                $suggestion = '';
+                $all_keys = get_post_meta($this->atts['post_id']);
+                if ($all_keys) {
+                    foreach ($all_keys as $k => $v) {
+                        // Look for pattern: parent_0_child (ACF style)
+                        if (preg_match('/^(.+)_\d+_' . preg_quote($this->atts['field'], '/') . '$/', $k, $matches)) {
+                            $suggestion = $matches[1];
+                            break;
+                        }
+                    }
+                }
+
+                if ($suggestion) {
+                    $msg .= '<br><br>💡 <strong>Did you mean "' . esc_html($suggestion) . '"?</strong><br>We found "' . esc_html($this->atts['field']) . '" as a sub-field of "' . esc_html($suggestion) . '". Try changing the Repeater Field Name to <strong>' . esc_html($suggestion) . '</strong>.';
+                } else {
+                    $msg .= ' Check if the field name is correct.';
+                }
+
+                return '<div style="background:#fff3cd; color:#856404; padding:10px; border:1px solid #ffeeba;">' . $msg . '</div>';
             }
             return '';
         }
@@ -159,25 +180,6 @@ class Nueva_CFRD_Renderer
         // Ensure data is array and iterable
         if (!is_array($this->data)) {
             $this->data = array();
-        }
-
-        // --- DEBUG MODE (Admin Only) ---
-        if (empty($this->data) && current_user_can('edit_posts')) {
-            echo '<div style="background:#fff3cd; color:#856404; padding:15px; border:1px solid #ffeeba; margin-bottom:20px;">';
-            echo '<strong>⚠️ Debug Info for Admin:</strong><br>';
-            echo 'Target Field: <code>' . esc_html($field) . '</code> on Post ID: <code>' . $post_id . '</code><br>';
-
-            // Show all available keys
-            $all_meta = get_post_meta($post_id);
-            echo '<details><summary>Click to see all available Meta Keys on this Post</summary>';
-            echo '<pre style="height:200px; overflow:auto; background:#fff; padding:10px;">';
-            foreach ($all_meta as $k => $v) {
-                if (strpos($k, '_') === 0)
-                    continue; // Skip hidden
-                echo "[$k] => " . (is_serialized($v[0]) ? 'Array (Serialized)' : $v[0]) . "\n";
-            }
-            echo '</pre></details>';
-            echo '</div>';
         }
     }
 
