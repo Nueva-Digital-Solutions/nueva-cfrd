@@ -310,10 +310,22 @@ class Nueva_CFRD_Elementor_Widget extends \Elementor\Widget_Base
         $sub_fields = [];
         if (!empty($settings['sub_fields_list'])) {
             foreach ($settings['sub_fields_list'] as $field) {
-                // Ensure name is clean, critical for matching logic
+                // Generate Custom CSS for this field
+                $css = '';
+                if (!empty($field['text_color'])) {
+                    $css .= 'color: ' . $field['text_color'] . ';';
+                }
+                if (!empty($field['font_size']['size'])) {
+                    $css .= 'font-size: ' . $field['font_size']['size'] . $field['font_size']['unit'] . ';';
+                }
+                if (!empty($field['font_weight'])) {
+                    $css .= 'font-weight: ' . $field['font_weight'] . ';';
+                }
+
                 $sub_fields[] = [
                     'name' => trim($field['name']),
-                    'type' => $field['type']
+                    'type' => $field['type'],
+                    'style' => $css // Pass CSS string
                 ];
             }
         }
