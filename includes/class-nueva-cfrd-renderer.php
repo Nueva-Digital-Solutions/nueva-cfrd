@@ -650,14 +650,34 @@ class Nueva_CFRD_Renderer
         }
     }
 
-    private function format_value($value)
+    private function format_value($value, $type = 'text')
     {
         if (is_array($value)) {
+            // ACF Image array
             if (isset($value['url'])) {
                 return '<img src="' . esc_url($value['url']) . '" alt="' . esc_attr($value['alt'] ?? '') . '" />';
             }
+            // ACF Link array
+            if (isset($value['url']) && isset($value['title'])) {
+                return '<a href="' . esc_url($value['url']) . '" target="' . esc_attr($value['target'] ?? '_self') . '">' . esc_html($value['title']) . '</a>';
+            }
             return implode(', ', $value);
         }
-        return wp_kses_post($value);
+
+        switch ($type) {
+            case 'image':
+                // Expecting ID or URL
+                if (is_numeric($value)) {
+                    return wp_get_attachment_image($value, 'full');
+                }
+                return '<img src="' . esc_url($value) . '" />';
+            case 'link':
+                return '<a href="' . esc_url($value) . '">' . esc_html($value) . '</a>';
+            case 'html':
+                return $value; // Raw HTML (trusting the admin/input)
+            case 'text':
+            default:
+                return wp_kses_post($value);
+        }
     }
 }
