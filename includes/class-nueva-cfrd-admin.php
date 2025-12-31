@@ -23,54 +23,59 @@ class Nueva_CFRD_Admin
         wp_enqueue_style('wp-color-picker');
     }
 
-	public function ajax_fetch_fields() {
-		$source_val = $_POST['post_id']; // Can be '123' or 'option_slug'
-		if ( ! $source_val ) wp_send_json_error( 'Invalid Source' );
+    public function ajax_fetch_fields()
+    {
+        $source_val = $_POST['post_id']; // Can be '123' or 'option_slug'
+        if (!$source_val)
+            wp_send_json_error('Invalid Source');
 
-		$repeaters = array();
-		
-		// Check if Option Page
-		if ( strpos( $source_val, 'option_' ) === 0 ) {
-			// It's an option page, logic differs slightly. ACF stores with no ID or specific ID.
-			// Usually get_fields('option') works.
-			// But for direct meta scan, we look at wp_options where option_name LIKE 'options_%' ?
-			// Actually ACF uses 'options' post ID for option pages often.
-			// Let's rely on standard logic:
-			$all_meta = get_fields( 'option' ); // If ACF exists
-			if ( $all_meta ) {
-				foreach ( $all_meta as $key => $val ) {
-					if ( is_array($val) && !empty($val) && isset($val[0]) && is_array($val[0]) ) {
-						$repeaters[$key] = array_keys($val[0]);
-					}
-				}
-			}
-		} else {
-			// Helper to recursively finding array of arrays (repeater structure) in meta
-			$post_id = intval($source_val);
-			$all_meta = get_post_meta( $post_id );
-			
-			foreach ( $all_meta as $key => $values ) {
-				if ( strpos( $key, '_' ) === 0 ) continue;
-				$val = $values[0];
-				
-				// 1. Try Unserialize
-				$data = @unserialize( $val );
-				if ( $data === false && is_serialized( $val ) ) $data = unserialize( $val );
-				
-				// 2. Try ACF get_field if it didn't look like serialized array or just to be sure
-				if ( function_exists('get_field') && ( !is_array($data) || empty($data) ) ) {
-					$acf_data = get_field( $key, $post_id );
-					if ( is_array($acf_data) ) $data = $acf_data;
-				}
+        $repeaters = array();
 
-				if ( is_array( $data ) && ! empty( $data ) && isset( $data[0] ) && is_array( $data[0] ) ) {
-					$repeaters[ $key ] = array_keys( $data[0] );
-				}
-			}
-		}
-		
-		wp_send_json_success( $repeaters );
-	}
+        // Check if Option Page
+        if (strpos($source_val, 'option_') === 0) {
+            // It's an option page, logic differs slightly. ACF stores with no ID or specific ID.
+            // Usually get_fields('option') works.
+            // But for direct meta scan, we look at wp_options where option_name LIKE 'options_%' ?
+            // Actually ACF uses 'options' post ID for option pages often.
+            // Let's rely on standard logic:
+            $all_meta = get_fields('option'); // If ACF exists
+            if ($all_meta) {
+                foreach ($all_meta as $key => $val) {
+                    if (is_array($val) && !empty($val) && isset($val[0]) && is_array($val[0])) {
+                        $repeaters[$key] = array_keys($val[0]);
+                    }
+                }
+            }
+        } else {
+            // Helper to recursively finding array of arrays (repeater structure) in meta
+            $post_id = intval($source_val);
+            $all_meta = get_post_meta($post_id);
+
+            foreach ($all_meta as $key => $values) {
+                if (strpos($key, '_') === 0)
+                    continue;
+                $val = $values[0];
+
+                // 1. Try Unserialize
+                $data = @unserialize($val);
+                if ($data === false && is_serialized($val))
+                    $data = unserialize($val);
+
+                // 2. Try ACF get_field if it didn't look like serialized array or just to be sure
+                if (function_exists('get_field') && (!is_array($data) || empty($data))) {
+                    $acf_data = get_field($key, $post_id);
+                    if (is_array($acf_data))
+                        $data = $acf_data;
+                }
+
+                if (is_array($data) && !empty($data) && isset($data[0]) && is_array($data[0])) {
+                    $repeaters[$key] = array_keys($data[0]);
+                }
+            }
+        }
+
+        wp_send_json_success($repeaters);
+    }
 
     public function add_meta_boxes()
     {
@@ -130,14 +135,57 @@ class Nueva_CFRD_Admin
             <div id="tab-config" class="nueva-tab-content active">
 
                 <!-- Data Source -->
+                <!-- Data Source -->
                 <div class="nueva-section">
                     <h3 class="nueva-section-title">Data Source</h3>
                     <div class="nueva-discovery-box">
-                        <strong>Autodetect Fields:</strong>
-                        <input type="number" id="nueva-demo-post-id" class="small-text" placeholder="Post ID">
-                        <button type="button" class="button button-secondary" id="nueva-fetch-fields-btn">Detect</button>
-                        <span id="nueva-fetch-status"></span>
+                        <label style="display:block; margin-bottom:5px;"><strong>🚀 Autodetect Fields from
+                                Content</strong></label>
+                        <p class="description" style="margin-bottom:10px;">Select a Post, Page, or Option Page that contains the
+                            Repeater data. The system will scan it for you.</p>
+
+                        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                            <select id="nueva-demo-post-id" class="widefat" style="max-width: 400px;">
+                                <option value="">-- Select Content Source --</option>
+
+                                <!-- Options Pages (ACF) -->
+                                <?php if (function_exists('acf_get_options_pages')):
+                                    $pages = acf_get_options_pages();
+                                    if ($pages): ?>
+                                        <optgroup label="Option Pages">
+                                            <?php foreach ($pages as $slug => $page): ?>
+                                                <option value="option_<?php echo esc_attr($slug); ?>">
+                                                    <?php echo esc_html($page['page_title']); ?>
+                                                </option>
+                                            <?php endforeach; ?>
+                                        </optgroup>
+                                    <?php endif;
+                                endif; ?>
+
+                                <!-- Post Types -->
+                                <?php
+                                $post_types = get_post_types(array('public' => true), 'objects');
+                                foreach ($post_types as $pt_slug => $pt) {
+                                    if ($pt_slug === 'attachment' || $pt_slug === 'nueva_layout')
+                                        continue;
+
+                                    $posts = get_posts(array('post_type' => $pt_slug, 'numberposts' => 10, 'post_status' => 'publish', 'orderby' => 'date', 'order' => 'DESC'));
+                                    if ($posts) {
+                                        echo '<optgroup label="' . esc_attr($pt->labels->name) . '">';
+                                        foreach ($posts as $p) {
+                                            echo '<option value="' . $p->ID . '">' . esc_html($p->post_title) . ' (ID: ' . $p->ID . ')</option>';
+                                        }
+                                        echo '</optgroup>';
+                                    }
+                                }
+                                ?>
+                            </select>
+                            <button type="button" class="button button-secondary" id="nueva-fetch-fields-btn">Detect
+                                Fields</button>
+                        </div>
+                        <div id="nueva-fetch-status" style="margin-top:10px; font-weight:bold;"></div>
                     </div>
+
                     <div class="nueva-form-row">
                         <label>Repeater Field Name</label>
                         <div style="display:flex; gap:10px;">
@@ -161,8 +209,8 @@ class Nueva_CFRD_Admin
                         </div>
                         <div>
                             <label>Columns (Grid)</label>
-                            <input type="number" name="nueva_columns" value="<?php echo esc_attr($columns); ?>" max="12"
-                                min="1" class="widefat">
+                            <input type="number" name="nueva_columns" value="<?php echo esc_attr($columns); ?>" max="12" min="1"
+                                class="widefat">
                         </div>
                     </div>
                 </div>
@@ -211,8 +259,8 @@ class Nueva_CFRD_Admin
         </div>
 
         <script type="text/template" id="nueva-field-template">
-                    <?php $this->render_sub_field_row('{{INDEX}}', array()); ?>
-                </script>
+                            <?php $this->render_sub_field_row('{{INDEX}}', array()); ?>
+                        </script>
         <?php
     }
 
@@ -257,8 +305,8 @@ class Nueva_CFRD_Admin
                 </div>
                 <div>
                     <label>Text Color</label>
-                    <input type="text" name="<?php echo $prefix; ?>[color]" value="<?php echo esc_attr($vals['color'] ?? ''); ?>"
-                        class="nueva-color-picker">
+                    <input type="text" name="<?php echo $prefix; ?>[color]"
+                        value="<?php echo esc_attr($vals['color'] ?? ''); ?>" class="nueva-color-picker">
                 </div>
                 <div>
                     <label>Background Color</label>
