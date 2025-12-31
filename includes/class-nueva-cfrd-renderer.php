@@ -15,12 +15,14 @@ class Nueva_CFRD_Renderer
             $field = get_post_meta($this->config_id, 'nueva_field_name', true);
             $layout = get_post_meta($this->config_id, 'nueva_layout_type', true);
             $columns = get_post_meta($this->config_id, 'nueva_columns', true);
+            $sub_fields = get_post_meta($this->config_id, 'nueva_sub_fields', true);
 
             // Defaults if saved config is missing
             $defaults = array(
                 'field' => $field,
                 'layout' => $layout ?: 'grid',
                 'columns' => $columns ?: '3',
+                'sub_fields' => $sub_fields ?: array(),
             );
 
             $this->atts = shortcode_atts(
@@ -613,14 +615,33 @@ class Nueva_CFRD_Renderer
             return;
         }
 
-        foreach ($item as $key => $value) {
-            if (in_array($key, $exclude_keys))
-                continue;
+        // If sub_fields are configured (from Builder), use them to filter and order
+        if (!empty($this->atts['sub_fields']) && is_array($this->atts['sub_fields'])) {
+            foreach ($this->atts['sub_fields'] as $field_config) {
+                $key = $field_config['name'] ?? '';
+                if (!$key || in_array($key, $exclude_keys))
+                    continue;
 
-            echo '<div class="nueva-field nueva-field-' . esc_attr($key) . '">';
-            echo '<strong class="nueva-label">' . esc_html(ucfirst(str_replace('_', ' ', $key))) . ': </strong>';
-            echo '<span class="nueva-value">' . $this->format_value($value) . '</span>';
-            echo '</div>';
+                if (isset($item[$key])) {
+                    $value = $item[$key];
+                    echo '<div class="nueva-field nueva-field-' . esc_attr($key) . '">';
+                    // Optional: You could allow hiding the label in the future. For now, we show it.
+                    echo '<strong class="nueva-label">' . esc_html(ucfirst(str_replace('_', ' ', $key))) . ': </strong>';
+                    echo '<span class="nueva-value">' . $this->format_value($value) . '</span>';
+                    echo '</div>';
+                }
+            }
+        } else {
+            // Fallback: Show all fields (Legacy behavior)
+            foreach ($item as $key => $value) {
+                if (in_array($key, $exclude_keys))
+                    continue;
+
+                echo '<div class="nueva-field nueva-field-' . esc_attr($key) . '">';
+                echo '<strong class="nueva-label">' . esc_html(ucfirst(str_replace('_', ' ', $key))) . ': </strong>';
+                echo '<span class="nueva-value">' . $this->format_value($value) . '</span>';
+                echo '</div>';
+            }
         }
     }
 

@@ -138,43 +138,48 @@ class Nueva_CFRD_Admin
                 <div class="nueva-section">
                     <h3 class="nueva-section-title">Data Source</h3>
                     <div class="nueva-discovery-box">
-                        <label style="display:block; margin-bottom:5px;"><strong>🚀 Autodetect Fields from Content</strong></label>
-                        <p class="description" style="margin-bottom:10px;">Select a Post, Page, or Option Page that contains the Repeater data. The system will scan it for you.</p>
-                        
+                        <label style="display:block; margin-bottom:5px;"><strong>🚀 Autodetect Fields from
+                                Content</strong></label>
+                        <p class="description" style="margin-bottom:10px;">Select a Post, Page, or Option Page that contains the
+                            Repeater data. The system will scan it for you.</p>
+
                         <div style="display:flex; gap:10px; flex-wrap:wrap;">
                             <select id="nueva-demo-post-id" class="widefat" style="max-width: 400px;">
                                 <option value="">-- Select Content Source --</option>
-                                
+
                                 <!-- Options Pages (ACF) -->
-                                <?php if( function_exists('acf_get_options_pages') ): 
+                                <?php if (function_exists('acf_get_options_pages')):
                                     $pages = acf_get_options_pages();
-                                    if($pages): ?>
+                                    if ($pages): ?>
                                         <optgroup label="Option Pages">
-                                        <?php foreach($pages as $slug => $page): ?>
-                                            <option value="option_<?php echo esc_attr($slug); ?>"><?php echo esc_html($page['page_title']); ?></option>
-                                        <?php endforeach; ?>
+                                            <?php foreach ($pages as $slug => $page): ?>
+                                                <option value="option_<?php echo esc_attr($slug); ?>">
+                                                    <?php echo esc_html($page['page_title']); ?></option>
+                                            <?php endforeach; ?>
                                         </optgroup>
-                                    <?php endif; 
+                                    <?php endif;
                                 endif; ?>
 
                                 <!-- Post Types -->
-                                <?php 
-                                $post_types = get_post_types( array( 'public' => true ), 'objects' );
-                                foreach ( $post_types as $pt_slug => $pt ) {
-                                    if ( $pt_slug === 'attachment' || $pt_slug === 'nueva_layout' ) continue;
-                                    
-                                    $posts = get_posts( array( 'post_type' => $pt_slug, 'numberposts' => 10, 'post_status' => 'publish', 'orderby' => 'date', 'order' => 'DESC' ) );
-                                    if ( $posts ) {
-                                        echo '<optgroup label="' . esc_attr( $pt->labels->name ) . '">';
-                                        foreach ( $posts as $p ) {
-                                            echo '<option value="' . $p->ID . '">' . esc_html( $p->post_title ) . ' (ID: ' . $p->ID . ')</option>';
+                                <?php
+                                $post_types = get_post_types(array('public' => true), 'objects');
+                                foreach ($post_types as $pt_slug => $pt) {
+                                    if ($pt_slug === 'attachment' || $pt_slug === 'nueva_layout')
+                                        continue;
+
+                                    $posts = get_posts(array('post_type' => $pt_slug, 'numberposts' => 10, 'post_status' => 'publish', 'orderby' => 'date', 'order' => 'DESC'));
+                                    if ($posts) {
+                                        echo '<optgroup label="' . esc_attr($pt->labels->name) . '">';
+                                        foreach ($posts as $p) {
+                                            echo '<option value="' . $p->ID . '">' . esc_html($p->post_title) . ' (ID: ' . $p->ID . ')</option>';
                                         }
                                         echo '</optgroup>';
                                     }
                                 }
                                 ?>
                             </select>
-                            <button type="button" class="button button-secondary" id="nueva-fetch-fields-btn">Detect Fields</button>
+                            <button type="button" class="button button-secondary" id="nueva-fetch-fields-btn">Detect
+                                Fields</button>
                         </div>
                         <div id="nueva-fetch-status" style="margin-top:10px; font-weight:bold;"></div>
                     </div>
@@ -182,7 +187,8 @@ class Nueva_CFRD_Admin
                     <div class="nueva-form-row">
                         <label>Repeater Field Name</label>
                         <div style="display:flex; gap:10px;">
-                            <input type="text" name="nueva_field_name" id="nueva_field_name" value="<?php echo esc_attr( $field_name ); ?>" class="widefat">
+                            <input type="text" name="nueva_field_name" id="nueva_field_name"
+                                value="<?php echo esc_attr($field_name); ?>" class="widefat">
                             <select id="nueva_detected_repeaters" style="display:none;"></select>
                         </div>
                     </div>
@@ -201,8 +207,8 @@ class Nueva_CFRD_Admin
                         </div>
                         <div>
                             <label>Columns (Grid)</label>
-                            <input type="number" name="nueva_columns" value="<?php echo esc_attr($columns); ?>" max="12"
-                                min="1" class="widefat">
+                            <input type="number" name="nueva_columns" value="<?php echo esc_attr($columns); ?>" max="12" min="1"
+                                class="widefat">
                         </div>
                     </div>
                 </div>
@@ -251,8 +257,8 @@ class Nueva_CFRD_Admin
         </div>
 
         <script type="text/template" id="nueva-field-template">
-            <?php $this->render_sub_field_row('{{INDEX}}', array()); ?>
-        </script>
+                    <?php $this->render_sub_field_row('{{INDEX}}', array()); ?>
+                </script>
         <?php
     }
 
@@ -355,10 +361,17 @@ class Nueva_CFRD_Admin
 
         $fields = ['nueva_field_name', 'nueva_layout_type', 'nueva_columns', 'nueva_sub_fields', 'nueva_custom_css', 'nueva_style_config'];
         foreach ($fields as $field) {
-            if (isset($_POST[$field]))
-                update_post_meta($post_id, $field, $_POST[$field]);
-            else
+            if (isset($_POST[$field])) {
+                $val = $_POST[$field];
+                // Sanitize string fields
+                if (is_string($val)) {
+                    $val = sanitize_text_field($val);
+                }
+                // Custom CSS and arrays are allowed as-is (wp_kses_post could be used for CSS but for now raw string is okay for admin)
+                update_post_meta($post_id, $field, $val);
+            } else {
                 delete_post_meta($post_id, $field);
+            }
         }
     }
 }
