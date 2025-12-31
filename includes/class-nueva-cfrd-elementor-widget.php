@@ -108,17 +108,6 @@ class Nueva_CFRD_Elementor_Widget extends \Elementor\Widget_Base
             ]
         );
 
-        $repeater->add_control(
-            'show_label',
-            [
-                'label' => esc_html__('Show Label?', 'nueva-cfrd'),
-                'type' => \Elementor\Controls_Manager::SWITCHER,
-                'label_on' => 'Yes',
-                'label_off' => 'No',
-                'return_value' => 'yes',
-                'default' => 'yes',
-            ]
-        );
 
         $this->add_control(
             'sub_fields_list',
@@ -129,8 +118,7 @@ class Nueva_CFRD_Elementor_Widget extends \Elementor\Widget_Base
                 'default' => [
                     [
                         'name' => 'title',
-                        'type' => 'text',
-                        'show_label' => 'yes'
+                        'type' => 'text'
                     ],
                 ],
                 'title_field' => '{{{ name }}}',
@@ -187,8 +175,7 @@ class Nueva_CFRD_Elementor_Widget extends \Elementor\Widget_Base
                 // Ensure name is clean, critical for matching logic
                 $sub_fields[] = [
                     'name' => trim($field['name']),
-                    'type' => $field['type'],
-                    'show_label' => $field['show_label'] === 'yes'
+                    'type' => $field['type']
                 ];
             }
         }

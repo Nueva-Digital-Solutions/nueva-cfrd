@@ -640,15 +640,13 @@ class Nueva_CFRD_Renderer
             }
 
             foreach ($this->atts['sub_fields'] as $field_config) {
-                // Determine Key, Type, and Show Label
+                // Determine Key, Type
                 if (is_array($field_config)) {
                     $target_key = strtolower(trim($field_config['name'] ?? ''));
                     $type = $field_config['type'] ?? 'text';
-                    $show_label = isset($field_config['show_label']) ? filter_var($field_config['show_label'], FILTER_VALIDATE_BOOLEAN) : true;
                 } else {
                     $target_key = strtolower(trim($field_config));
                     $type = 'text';
-                    $show_label = true;
                 }
 
                 if (!$target_key || in_array($target_key, $exclude_keys))
@@ -659,11 +657,7 @@ class Nueva_CFRD_Renderer
                     $value = $normalized_item[$target_key];
 
                     echo '<div class="nueva-field nueva-field-' . esc_attr($target_key) . '">';
-
-                    if ($show_label) {
-                        echo '<strong class="nueva-label">' . esc_html(ucfirst(str_replace('_', ' ', $target_key))) . ': </strong>';
-                    }
-
+                    // Label removed permanently
                     echo '<span class="nueva-value">' . $this->format_value($value, $type) . '</span>';
                     echo '</div>';
                     $rendered_count++;
