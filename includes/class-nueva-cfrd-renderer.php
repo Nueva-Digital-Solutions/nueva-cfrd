@@ -5,6 +5,8 @@ class Nueva_CFRD_Renderer
 
     private $config_id;
     private $styles_css = '';
+    private $atts = array();
+    private $data = array();
 
     public function __construct($atts)
     {
@@ -617,7 +619,6 @@ class Nueva_CFRD_Renderer
 
         $rendered_count = 0;
 
-        // If sub_fields are configured (from Builder), use them to filter and order
         // If sub_fields are configured (from Builder), use them to filter and order
         if (!empty($this->atts['sub_fields']) && is_array($this->atts['sub_fields'])) {
             foreach ($this->atts['sub_fields'] as $field_config) {
