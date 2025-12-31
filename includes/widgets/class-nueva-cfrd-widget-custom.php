@@ -25,7 +25,7 @@ class Nueva_CFRD_Widget_Custom extends Nueva_CFRD_Widget_Base
         return 'custom';
     }
 
-    protected function add_layout_controls()
+    protected function register_content_controls()
     {
         $this->start_controls_section(
             'custom_loop_section',

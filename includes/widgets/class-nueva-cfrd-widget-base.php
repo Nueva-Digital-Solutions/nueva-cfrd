@@ -166,6 +166,9 @@ abstract class Nueva_CFRD_Widget_Base extends \Elementor\Widget_Base
 
         $this->end_controls_section();
 
+        // Allow Child Classes to add Content Controls (e.g. Custom Loop Template)
+        $this->register_content_controls();
+
 
         // --- STYLE TAB ---
 
@@ -272,6 +275,13 @@ abstract class Nueva_CFRD_Widget_Base extends \Elementor\Widget_Base
      * Virtual method for child classes to add controls in Style section
      */
     protected function add_layout_controls()
+    {
+    }
+
+    /**
+     * Virtual method for child classes to add extra sections/controls in Content Tab
+     */
+    protected function register_content_controls()
     {
     }
 
