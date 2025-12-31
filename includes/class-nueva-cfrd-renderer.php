@@ -621,28 +621,36 @@ class Nueva_CFRD_Renderer
 
         // If sub_fields are configured (from Builder), use them to filter and order
         if (!empty($this->atts['sub_fields']) && is_array($this->atts['sub_fields'])) {
+
+            // Normalize Item Keys for searching
+            $normalized_item = [];
+            foreach ($item as $k => $v) {
+                $normalized_item[trim($k)] = $v;
+            }
+
             foreach ($this->atts['sub_fields'] as $field_config) {
                 // Determine Key, Type, and Show Label
                 if (is_array($field_config)) {
-                    $key = $field_config['name'] ?? '';
+                    $target_key = trim($field_config['name'] ?? '');
                     $type = $field_config['type'] ?? 'text';
                     $show_label = isset($field_config['show_label']) ? filter_var($field_config['show_label'], FILTER_VALIDATE_BOOLEAN) : true;
-                    // For Elementor widget, we might want default false if not set, but let's stick to true unless explicitly false for backward compat
                 } else {
-                    $key = $field_config;
+                    $target_key = trim($field_config);
                     $type = 'text';
                     $show_label = true;
                 }
 
-                if (!$key || in_array($key, $exclude_keys))
+                if (!$target_key || in_array($target_key, $exclude_keys))
                     continue;
 
-                if (isset($item[$key])) {
-                    $value = $item[$key];
-                    echo '<div class="nueva-field nueva-field-' . esc_attr($key) . '">';
+                // Loose Match Search
+                if (array_key_exists($target_key, $normalized_item)) {
+                    $value = $normalized_item[$target_key];
+
+                    echo '<div class="nueva-field nueva-field-' . esc_attr($target_key) . '">';
 
                     if ($show_label) {
-                        echo '<strong class="nueva-label">' . esc_html(ucfirst(str_replace('_', ' ', $key))) . ': </strong>';
+                        echo '<strong class="nueva-label">' . esc_html(ucfirst(str_replace('_', ' ', $target_key))) . ': </strong>';
                     }
 
                     echo '<span class="nueva-value">' . $this->format_value($value, $type) . '</span>';
