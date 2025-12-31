@@ -693,10 +693,37 @@ class Nueva_CFRD_Renderer
                     $value = $normalized_item[$target_key];
 
                     echo '<div class="nueva-field nueva-field-' . esc_attr($target_key) . '">';
-                    // Label removed permanently
-                    // Apply Custom Style Inline
+
                     $style_attr = $custom_style ? ' style="' . esc_attr($custom_style) . '"' : '';
-                    echo '<span class="nueva-value"' . $style_attr . '>' . $this->format_value($value, $type) . '</span>';
+
+                    // Determine Wrapper Tag based on Type
+                    $tag = 'span';
+                    if ($type === 'paragraph')
+                        $tag = 'p';
+                    if ($type === 'heading')
+                        $tag = $field_config['heading_tag'] ?? 'h3';
+                    if ($type === 'div')
+                        $tag = 'div';
+
+                    // HTML & Video might not need a wrapper or need specific handling
+                    if ($type === 'html') {
+                        echo '<div class="nueva-html-content">' . $value . '</div>';
+                    } elseif ($type === 'video') {
+                        $ratio = $field_config['video_ratio'] ?? '169';
+                        echo '<div class="nueva-video-wrapper nueva-ratio-' . esc_attr($ratio) . '">';
+                        // Simple oEmbed or Iframe logic
+                        if (strpos($value, 'iframe') !== false) {
+                            echo $value;
+                        } else {
+                            // Assistive oEmbed
+                            echo wp_oembed_get($value, array('width' => 800));
+                        }
+                        echo '</div>';
+                    } else {
+                        // Text, Link, Image (wrapper is span/div/h3 etc)
+                        echo '<' . $tag . ' class="nueva-value"' . $style_attr . '>' . $this->format_value($value, $type) . '</' . $tag . '>';
+                    }
+
                     echo '</div>';
                     $rendered_count++;
                 }

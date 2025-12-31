@@ -1,0 +1,138 @@
+/* --- General Wrapper --- */
+.nueva-cfrd-wrapper {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.nueva-cfrd-wrapper *,
+.nueva-cfrd-wrapper *::before,
+.nueva-cfrd-wrapper *::after {
+    box-sizing: border-box;
+}
+
+/* --- Grid Layout --- */
+.nueva-cfrd-grid {
+    display: grid;
+    gap: 20px;
+}
+
+/* Fallback if inline style fails */
+@media (min-width: 768px) {
+    .nueva-cfrd-grid:not([style*="grid-template-columns"]) {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+/* --- List Layout --- */
+.nueva-cfrd-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+/* --- Accordion --- */
+.nueva-cfrd-accordion {
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.nueva-accordion-item {
+    border-bottom: 1px solid #eee;
+}
+
+.nueva-accordion-item:last-child {
+    border-bottom: none;
+}
+
+.nueva-accordion-header {
+    width: 100%;
+    text-align: left;
+    padding: 15px 20px;
+    background: #f9f9f9;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: background 0.2s;
+}
+
+.nueva-accordion-header:hover {
+    background: #f1f1f1;
+}
+
+.nueva-accordion-content {
+    display: none;
+    /* Hidden by default */
+    padding: 20px;
+    background: #fff;
+    border-top: 1px solid #eee;
+}
+
+.nueva-accordion-item.active .nueva-accordion-content {
+    display: block;
+    /* Fallback if JS slideDown fails */
+}
+
+/* --- Slider (Swiper Overrides) --- */
+.nueva-cfrd-slider {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    position: relative;
+    padding-bottom: 40px;
+    /* Space for pagination */
+}
+
+.swiper-slide {
+    height: auto;
+    /* Allow auto height cards */
+}
+
+/* --- Card / Item --- */
+.nueva-card-builder,
+.nueva-cfrd-item {
+    background: #fff;
+    border: 1px solid #eee;
+    padding: 20px;
+    border-radius: 4px;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+/* --- Rich Fields --- */
+.nueva-video-wrapper {
+    position: relative;
+    width: 100%;
+    height: 0;
+    margin-bottom: 15px;
+}
+
+.nueva-ratio-169 {
+    padding-bottom: 56.25%;
+}
+
+.nueva-ratio-43 {
+    padding-bottom: 75%;
+}
+
+.nueva-ratio-11 {
+    padding-bottom: 100%;
+}
+
+.nueva-video-wrapper iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+}
+
+.nueva-value img {
+    max-width: 100%;
+    height: auto;
+}

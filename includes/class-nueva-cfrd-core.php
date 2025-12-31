@@ -12,7 +12,7 @@ class Nueva_CFRD_Core
     public function enqueue_assets()
     {
         // Enqueue generic styles
-        wp_enqueue_style('nueva-cfrd-style', NUEVA_CFRD_URL . 'assets/css/style.css', array(), NUEVA_CFRD_VERSION);
+        wp_enqueue_style('nueva-cfrd-style', NUEVA_CFRD_URL . 'assets/css/nueva-cfrd-frontend.css', array(), NUEVA_CFRD_VERSION);
 
         // Enqueue Swiper for sliders/carousels (using a CDN for now or local if available)
         // For production, we should bundle this, but for now we'll use a CDN for quick setup
@@ -23,7 +23,7 @@ class Nueva_CFRD_Core
         wp_enqueue_script('masonry');
 
         // Enqueue custom script
-        wp_enqueue_script('nueva-cfrd-script', NUEVA_CFRD_URL . 'assets/js/script.js', array('jquery', 'swiper-js', 'masonry'), NUEVA_CFRD_VERSION, true);
+        wp_enqueue_script('nueva-cfrd-script', NUEVA_CFRD_URL . 'assets/js/nueva-cfrd-frontend.js', array('jquery', 'swiper-js', 'masonry'), NUEVA_CFRD_VERSION, true);
     }
 
     public function render_shortcode($atts)
