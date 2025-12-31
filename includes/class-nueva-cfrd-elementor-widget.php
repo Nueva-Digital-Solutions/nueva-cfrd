@@ -13,77 +13,28 @@ if (!defined('ABSPATH')) {
 class Nueva_CFRD_Elementor_Widget extends \Elementor\Widget_Base
 {
 
-    /**
-     * Get widget name.
-     *
-     * Retrieve widget name.
-     *
-     * @since 1.0.0
-     * @access public
-     *
-     * @return string Widget name.
-     */
     public function get_name()
     {
         return 'nueva_cfrd_widget';
     }
 
-    /**
-     * Get widget title.
-     *
-     * Retrieve widget title.
-     *
-     * @since 1.0.0
-     * @access public
-     *
-     * @return string Widget title.
-     */
     public function get_title()
     {
         return esc_html__('ACF Repeater Display', 'nueva-cfrd');
     }
 
-    /**
-     * Get widget icon.
-     *
-     * Retrieve widget icon.
-     *
-     * @since 1.0.0
-     * @access public
-     *
-     * @return string Widget icon.
-     */
     public function get_icon()
     {
         return 'eicon-code';
     }
 
-    /**
-     * Get widget categories.
-     *
-     * Retrieve the list of categories the widget belongs to.
-     *
-     * @since 1.0.0
-     * @access public
-     *
-     * @return array Widget categories.
-     */
     public function get_categories()
     {
         return ['general'];
     }
 
-    /**
-     * Register widget controls.
-     *
-     * Adds different input fields to allow the user to change and customize the widget settings.
-     *
-     * @since 1.0.0
-     * @access protected
-     */
     protected function register_controls()
     {
-
         $this->start_controls_section(
             'content_section',
             [
@@ -99,16 +50,7 @@ class Nueva_CFRD_Elementor_Widget extends \Elementor\Widget_Base
                 'type' => \Elementor\Controls_Manager::TEXT,
                 'placeholder' => esc_html__('e.g. home_faq', 'nueva-cfrd'),
                 'description' => 'Enter the key of the ACF Repeater field.',
-            ]
-        );
-
-        $this->add_control(
-            'sub_field_name',
-            [
-                'label' => esc_html__('Sub Field(s)', 'nueva-cfrd'),
-                'type' => \Elementor\Controls_Manager::TEXT,
-                'placeholder' => esc_html__('e.g. home_question', 'nueva-cfrd'),
-                'description' => 'Enter the Sub Field key to display. For multiple, separate by comma.',
+                'label_block' => true,
             ]
         );
 
@@ -137,6 +79,64 @@ class Nueva_CFRD_Elementor_Widget extends \Elementor\Widget_Base
             ]
         );
 
+        // --- SUB FIELDS REPEATER ---
+        $repeater = new \Elementor\Repeater();
+
+        $repeater->add_control(
+            'name',
+            [
+                'label' => esc_html__('Field Key', 'nueva-cfrd'),
+                'type' => \Elementor\Controls_Manager::TEXT,
+                'label_block' => true,
+                'placeholder' => 'e.g. sub_field_key',
+            ]
+        );
+
+        $repeater->add_control(
+            'type',
+            [
+                'label' => esc_html__('Field Type', 'nueva-cfrd'),
+                'type' => \Elementor\Controls_Manager::SELECT,
+                'default' => 'text',
+                'options' => [
+                    'text' => 'Text',
+                    'image' => 'Image (URL/Array)',
+                    'link' => 'Link (URL/Array)',
+                    'html' => 'HTML / WYSIWYG',
+                ],
+            ]
+        );
+
+        $repeater->add_control(
+            'show_label',
+            [
+                'label' => esc_html__('Show Label?', 'nueva-cfrd'),
+                'type' => \Elementor\Controls_Manager::SWITCHER,
+                'label_on' => 'Yes',
+                'label_off' => 'No',
+                'return_value' => 'yes',
+                'default' => 'yes',
+            ]
+        );
+
+        $this->add_control(
+            'sub_fields_list',
+            [
+                'label' => esc_html__('Sub Fields Configuration', 'nueva-cfrd'),
+                'type' => \Elementor\Controls_Manager::REPEATER,
+                'fields' => $repeater->get_controls(),
+                'default' => [
+                    [
+                        'name' => 'title',
+                        'type' => 'text',
+                        'show_label' => 'yes'
+                    ],
+                ],
+                'title_field' => '{{{ name }}}',
+            ]
+        );
+        // --- END REPEATER ---
+
         $this->add_control(
             'layout_type',
             [
@@ -156,14 +156,6 @@ class Nueva_CFRD_Elementor_Widget extends \Elementor\Widget_Base
         $this->end_controls_section();
     }
 
-    /**
-     * Render widget output on the frontend.
-     *
-     * Written in PHP and used to generate the final HTML.
-     *
-     * @since 1.0.0
-     * @access protected
-     */
     protected function render()
     {
         $settings = $this->get_settings_for_display();
@@ -181,17 +173,20 @@ class Nueva_CFRD_Elementor_Widget extends \Elementor\Widget_Base
             $post_id = 'option';
         }
 
-        // Prepare Sub Fields
+        // Prepare Sub Fields array for Renderer
         $sub_fields = [];
-        if (!empty($settings['sub_field_name'])) {
-            $parts = explode(',', $settings['sub_field_name']);
-            foreach ($parts as $part) {
-                $sub_fields[] = ['name' => trim($part)];
+        if (!empty($settings['sub_fields_list'])) {
+            foreach ($settings['sub_fields_list'] as $field) {
+                // Ensure name is clean, critical for matching logic
+                $sub_fields[] = [
+                    'name' => trim($field['name']), 
+                    'type' => $field['type'],
+                    'show_label' => $field['show_label'] === 'yes'
+                ];
             }
         }
 
         // Init Renderer
-        // We need to pass 'id' as null to force manual mode
         require_once NUEVA_CFRD_PATH . 'includes/class-nueva-cfrd-renderer.php';
 
         $renderer_args = [
@@ -200,11 +195,12 @@ class Nueva_CFRD_Elementor_Widget extends \Elementor\Widget_Base
             'field' => $repeater_name,
             'layout' => $settings['layout_type'],
             'class' => 'nueva-elementor-widget',
-            'sub_fields' => $sub_fields
+            'sub_fields' => $sub_fields,
+            'columns' => 3 // Default, but overridden by CSS mostly
         ];
 
         $renderer = new \Nueva_CFRD_Renderer($renderer_args);
         echo $renderer->render();
     }
-
+}
 }
