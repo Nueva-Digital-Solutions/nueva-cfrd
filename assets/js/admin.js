@@ -7,7 +7,7 @@ jQuery(document).ready(function ($) {
     initColorPicker();
 
     // Tabs Switcher
-    $('.nueva-tab-link').on('click', function (e) {
+    $(document).on('click', '.nueva-tab-link', function (e) {
         e.preventDefault();
         var tabId = $(this).data('tab');
 
@@ -18,12 +18,10 @@ jQuery(document).ready(function ($) {
         // Tab Content
         $('.nueva-tab-content').removeClass('active');
         $('#' + tabId).addClass('active');
-
-        // State Tabs (Normal/Hover) - handled separately if needed, but styling engine might use nested logic
     });
 
     // Style State Tabs (Nested)
-    $('.nueva-style-state-tab').on('click', function (e) {
+    $(document).on('click', '.nueva-style-state-tab', function (e) {
         e.preventDefault();
         var state = $(this).data('state'); // 'normal' or 'hover'
 
@@ -34,40 +32,45 @@ jQuery(document).ready(function ($) {
         $('.nueva-style-state-' + state).show();
     });
 
-    // --- AUTO DISCOVERY & FIELD REPEATER (Previous Logic Kept) ---
+    // --- AUTO DISCOVERY ---
     var detectedData = {};
 
     $('#nueva-fetch-fields-btn').on('click', function (e) {
         e.preventDefault();
-        var postId = $('#nueva-demo-post-id').val();
+        var sourceVal = $('#nueva-demo-post-id').val();
         var btn = $(this);
         var status = $('#nueva-fetch-status');
 
-        if (!postId) { alert('Please enter a Post ID'); return; }
+        if (!sourceVal) { alert('Please select a Content Source first.'); return; }
 
         btn.prop('disabled', true).text('Scanning...');
-        status.text('');
+        status.html('<span style="color:#666;">Scanning...</span>');
 
         $.ajax({
             url: nueva_vars.ajax_url,
             type: 'POST',
-            data: { action: 'nueva_fetch_fields', post_id: postId },
+            data: { action: 'nueva_fetch_fields', post_id: sourceVal },
             success: function (response) {
-                btn.prop('disabled', false).text('Detect Fields from Post');
+                btn.prop('disabled', false).text('Detect Fields');
                 if (response.success) {
                     detectedData = response.data;
-                    var options = '<option value="">-- Select Detected Repeater --</option>';
                     var count = 0;
+                    var options = '<option value="">-- Select Detected Repeater --</option>';
                     $.each(detectedData, function (key, subfields) {
-                        options += '<option value="' + key + '">' + key + '</option>';
+                        options += '<option value="' + key + '">' + key + ' (' + subfields.length + ' subfields)</option>';
                         count++;
                     });
+
                     if (count > 0) {
                         $('#nueva_detected_repeaters').html(options).show();
                         $('#nueva_field_name').hide();
-                        status.text('✅ Found ' + count + ' repeaters!');
-                    } else { status.text('⚠️ No repeaters found.'); }
-                } else { status.text('❌ Error: ' + response.data); }
+                        status.html('<span style="color:green;">✅ Found ' + count + ' repeaters! Select one from the list.</span>');
+                    } else { status.html('<span style="color:orange;">⚠️ No repeater fields found.</span>'); }
+                } else { status.html('<span style="color:red;">❌ Error: ' + response.data + '</span>'); }
+            },
+            error: function () {
+                btn.prop('disabled', false).text('Detect Fields');
+                status.html('<span style="color:red;">❌ Request failed</span>');
             }
         });
     });

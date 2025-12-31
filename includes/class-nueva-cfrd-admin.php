@@ -23,28 +23,54 @@ class Nueva_CFRD_Admin
         wp_enqueue_style('wp-color-picker');
     }
 
-    public function ajax_fetch_fields()
-    {
-        // (Same logic as before, abbreviated here for brevity if allowed, but including full for correctness)
-        $post_id = intval($_POST['post_id']);
-        if (!$post_id)
-            wp_send_json_error('Invalid Post ID');
-        $all_meta = get_post_meta($post_id);
-        $repeaters = array();
-        foreach ($all_meta as $key => $values) {
-            if (strpos($key, '_') === 0)
-                continue;
-            $val = $values[0];
-            $data = @unserialize($val);
-            if ($data === false && is_serialized($val))
-                $data = unserialize($val);
-            if (is_array($data) && !empty($data) && is_array($data[0])) {
-                $sub_keys = array_keys($data[0]);
-                $repeaters[$key] = $sub_keys;
-            }
-        }
-        wp_send_json_success($repeaters);
-    }
+	public function ajax_fetch_fields() {
+		$source_val = $_POST['post_id']; // Can be '123' or 'option_slug'
+		if ( ! $source_val ) wp_send_json_error( 'Invalid Source' );
+
+		$repeaters = array();
+		
+		// Check if Option Page
+		if ( strpos( $source_val, 'option_' ) === 0 ) {
+			// It's an option page, logic differs slightly. ACF stores with no ID or specific ID.
+			// Usually get_fields('option') works.
+			// But for direct meta scan, we look at wp_options where option_name LIKE 'options_%' ?
+			// Actually ACF uses 'options' post ID for option pages often.
+			// Let's rely on standard logic:
+			$all_meta = get_fields( 'option' ); // If ACF exists
+			if ( $all_meta ) {
+				foreach ( $all_meta as $key => $val ) {
+					if ( is_array($val) && !empty($val) && isset($val[0]) && is_array($val[0]) ) {
+						$repeaters[$key] = array_keys($val[0]);
+					}
+				}
+			}
+		} else {
+			// Helper to recursively finding array of arrays (repeater structure) in meta
+			$post_id = intval($source_val);
+			$all_meta = get_post_meta( $post_id );
+			
+			foreach ( $all_meta as $key => $values ) {
+				if ( strpos( $key, '_' ) === 0 ) continue;
+				$val = $values[0];
+				
+				// 1. Try Unserialize
+				$data = @unserialize( $val );
+				if ( $data === false && is_serialized( $val ) ) $data = unserialize( $val );
+				
+				// 2. Try ACF get_field if it didn't look like serialized array or just to be sure
+				if ( function_exists('get_field') && ( !is_array($data) || empty($data) ) ) {
+					$acf_data = get_field( $key, $post_id );
+					if ( is_array($acf_data) ) $data = $acf_data;
+				}
+
+				if ( is_array( $data ) && ! empty( $data ) && isset( $data[0] ) && is_array( $data[0] ) ) {
+					$repeaters[ $key ] = array_keys( $data[0] );
+				}
+			}
+		}
+		
+		wp_send_json_success( $repeaters );
+	}
 
     public function add_meta_boxes()
     {
