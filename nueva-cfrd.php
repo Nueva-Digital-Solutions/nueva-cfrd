@@ -28,18 +28,16 @@ if (is_admin()) {
 }
 
 // Initialize Plugin
-function nueva_cfrd_init()
-{
     $plugin = new Nueva_CFRD_Core();
     $plugin->run();
 
-    $cpt = new Nueva_CFRD_CPT();
-    $cpt->run();
+    // $cpt = new Nueva_CFRD_CPT();
+    // $cpt->run();
 
-    if (is_admin()) {
-        $admin = new Nueva_CFRD_Admin();
-        $admin->run();
-    }
+    // if (is_admin()) {
+    //     $admin = new Nueva_CFRD_Admin();
+    //     $admin->run();
+    // }
 }
 add_action('plugins_loaded', 'nueva_cfrd_init');
 
