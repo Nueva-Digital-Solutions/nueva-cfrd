@@ -1,0 +1,379 @@
+/* Nueva CFRD Styles */
+
+.nueva-cfrd-wrapper {
+    margin-bottom: 2rem;
+    font-family: inherit;
+}
+
+/* Card / Grid Styles */
+.nueva-card {
+    background: #fff;
+    border: 1px solid #e5e5e5;
+    border-radius: 8px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.nueva-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.nueva-field {
+    margin-bottom: 0.5rem;
+}
+
+.nueva-label {
+    display: block;
+    color: #666;
+    font-size: 0.85em;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.nueva-value img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 4px;
+    margin-top: 5px;
+}
+
+/* List Styles */
+.nueva-cfrd-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.nueva-cfrd-item {
+    border-bottom: 1px solid #eee;
+    padding: 1rem 0;
+}
+
+/* Table Styles */
+.nueva-cfrd-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1rem 0;
+}
+
+.nueva-cfrd-table th,
+.nueva-cfrd-table td {
+    text-align: left;
+    padding: 12px;
+    border-bottom: 1px solid #eee;
+}
+
+.nueva-cfrd-table th {
+    background: #f9f9f9;
+    font-weight: 600;
+}
+
+/* Accordion Styles */
+.nueva-accordion-item {
+    border: 1px solid #e5e5e5;
+    border-bottom: none;
+}
+
+.nueva-accordion-item:last-child {
+    border-bottom: 1px solid #e5e5e5;
+}
+
+.nueva-accordion-header {
+    width: 100%;
+    text-align: left;
+    padding: 1rem;
+    background: #fdfdfd;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.nueva-accordion-header:hover {
+    background: #f5f5f5;
+}
+
+.nueva-accordion-content {
+    display: none;
+    padding: 1rem;
+    background: #fff;
+    border-top: 1px solid #eee;
+}
+
+.nueva-accordion-item.active .nueva-accordion-content {
+    display: block;
+}
+
+/* Tabs Styles */
+.nueva-tabs-nav {
+    display: flex;
+    list-style: none;
+    padding: 0;
+    margin: 0 0 1rem 0;
+    border-bottom: 2px solid #eee;
+}
+
+.nueva-tabs-nav li {
+    padding: 0.75rem 1.5rem;
+    cursor: pointer;
+    font-weight: 500;
+    color: #666;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+}
+
+.nueva-tabs-nav li:hover {
+    color: #333;
+}
+
+.nueva-tabs-nav li.active {
+    color: #0073aa;
+    border-bottom-color: #0073aa;
+}
+
+.nueva-tab-pane {
+    display: none;
+    animation: fadeIn 0.3s ease;
+}
+
+.nueva-tab-pane.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+/* Masonry */
+.nueva-cfrd-masonry {
+    /* Masonry is often handled by JS, but grid fallback is good */
+}
+
+.nueva-masonry-item {
+    margin-bottom: 20px;
+}
+
+/* Timeline */
+.nueva-cfrd-timeline {
+    position: relative;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.nueva-cfrd-timeline::after {
+    content: '';
+    position: absolute;
+    width: 4px;
+    background-color: #eee;
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    margin-left: -2px;
+}
+
+.nueva-timeline-item {
+    padding: 10px 40px;
+    position: relative;
+    background-color: inherit;
+    width: 50%;
+    box-sizing: border-box;
+}
+
+.nueva-timeline-item.left {
+    left: 0;
+}
+
+.nueva-timeline-item.right {
+    left: 50%;
+}
+
+.nueva-timeline-item::after {
+    content: '';
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    right: -10px;
+    background-color: #fff;
+    border: 4px solid #0073aa;
+    top: 15px;
+    border-radius: 50%;
+    z-index: 1;
+}
+
+.nueva-timeline-item.right::after {
+    left: -10px;
+}
+
+.nueva-timeline-content {
+    background: #fff;
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+}
+
+/* Zig-Zag */
+.nueva-zigzag-row {
+    display: flex;
+    align-items: center;
+    gap: 40px;
+    margin-bottom: 40px;
+}
+
+.nueva-row-reverse {
+    flex-direction: row-reverse;
+}
+
+.nueva-zigzag-media,
+.nueva-zigzag-content {
+    flex: 1;
+}
+
+.nueva-zigzag-media img {
+    width: 100%;
+    border-radius: 8px;
+}
+
+/* Master Detail */
+.nueva-cfrd-master-detail {
+    display: flex;
+    border: 1px solid #ddd;
+    height: 500px;
+}
+
+.nueva-master-list {
+    width: 30%;
+    border-right: 1px solid #ddd;
+    overflow-y: auto;
+    background: #f9f9f9;
+}
+
+.nueva-master-item {
+    padding: 15px;
+    cursor: pointer;
+    border-bottom: 1px solid #eee;
+}
+
+.nueva-master-item:hover {
+    background: #eee;
+}
+
+.nueva-master-item.active {
+    background: #fff;
+    border-left: 4px solid #0073aa;
+}
+
+.nueva-detail-view {
+    width: 70%;
+    padding: 20px;
+    overflow-y: auto;
+}
+
+.nueva-detail-pane {
+    display: none;
+}
+
+.nueva-detail-pane.active {
+    display: block;
+}
+
+/* Filterable */
+.nueva-filter-controls {
+    margin-bottom: 20px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.nueva-filter-controls button {
+    padding: 8px 16px;
+    border: 1px solid #ddd;
+    background: #fff;
+    cursor: pointer;
+    border-radius: 20px;
+}
+
+.nueva-filter-controls button.active {
+    background: #0073aa;
+    color: #fff;
+    border-color: #0073aa;
+}
+
+.nueva-filter-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 20px;
+}
+
+/* Hover Reveal */
+.nueva-hover-reveal {
+    position: relative;
+    overflow: hidden;
+    min-height: 200px;
+}
+
+.nueva-reveal-visible {
+    padding: 20px;
+    transition: transform 0.3s;
+}
+
+.nueva-reveal-hidden {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(255, 255, 255, 0.95);
+    padding: 20px;
+    transform: translateY(100%);
+    transition: transform 0.3s;
+    height: 100%;
+}
+
+.nueva-hover-reveal:hover .nueva-reveal-hidden {
+    transform: translateY(0);
+}
+
+/* Responsive */
+@media screen and (max-width: 600px) {
+    .nueva-timeline-item {
+        width: 100%;
+        padding-left: 70px;
+        padding-right: 25px;
+    }
+
+    .nueva-timeline-item::after {
+        left: 15px;
+    }
+
+    .nueva-cfrd-timeline::after {
+        left: 25px;
+    }
+
+    .nueva-zigzag-row,
+    .nueva-row-reverse {
+        flex-direction: column;
+    }
+
+    .nueva-cfrd-master-detail {
+        flex-direction: column;
+        height: auto;
+    }
+
+    .nueva-master-list {
+        width: 100%;
+        max-height: 200px;
+    }
+
+    .nueva-detail-view {
+        width: 100%;
+    }
+}

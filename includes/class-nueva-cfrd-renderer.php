@@ -1,0 +1,473 @@
+<?php
+
+class Nueva_CFRD_Renderer
+{
+
+    private $atts;
+    private $data;
+
+    public function __construct($atts)
+    {
+        $this->atts = $atts;
+    }
+
+    public function render()
+    {
+        $this->fetch_data();
+
+        if (empty($this->data)) {
+            return '<!-- Nueva CFRD: No data found for field ' . esc_html($this->atts['field']) . ' -->';
+        }
+
+        ob_start();
+        echo '<div class="nueva-cfrd-wrapper ' . esc_attr($this->atts['class']) . ' nueva-layout-' . esc_attr($this->atts['layout']) . '" data-layout="' . esc_attr($this->atts['layout']) . '">';
+
+        switch ($this->atts['layout']) {
+            case 'list':
+                $this->render_list();
+                break;
+            case 'table':
+                $this->render_table();
+                break;
+            case 'accordion':
+                $this->render_accordion();
+                break;
+            case 'tabs':
+                $this->render_tabs();
+                break;
+            case 'slider':
+            case 'carousel':
+            case 'card-deck':
+                $this->render_slider();
+                break;
+            case 'split':
+            case 'two-column':
+                $this->render_split();
+                break;
+            case 'stacked':
+                $this->render_stacked();
+                break;
+            case 'timeline':
+                $this->render_timeline();
+                break;
+            case 'comparison':
+                $this->render_comparison();
+                break;
+            case 'zig-zag':
+                $this->render_zigzag();
+                break;
+            case 'filterable':
+                $this->render_filterable();
+                break;
+            case 'expandable':
+                $this->render_expandable();
+                break;
+            case 'hover-reveal':
+                $this->render_hover_reveal();
+                break;
+            case 'master-detail':
+                $this->render_master_detail();
+                break;
+            case 'compact':
+                $this->render_compact();
+                break;
+            case 'masonry':
+                $this->render_masonry();
+                break;
+            case 'grid':
+            default:
+                $this->render_grid();
+                break;
+        }
+
+        echo '</div>';
+        return ob_get_clean();
+    }
+
+    private function fetch_data()
+    {
+        if ($this->atts['type'] === 'acf' && function_exists('get_field')) {
+            $this->data = get_field($this->atts['field'], $this->atts['post_id']);
+        } else {
+            $meta = get_post_meta($this->atts['post_id'], $this->atts['field'], true);
+            if (is_serialized($meta)) {
+                $this->data = unserialize($meta);
+            } elseif (is_array($meta)) {
+                $this->data = $meta;
+            }
+        }
+
+        // Ensure data is array and iterable
+        if (!is_array($this->data)) {
+            $this->data = array();
+        }
+    }
+
+    // --- Layout Renderers ---
+
+    private function render_grid()
+    {
+        echo '<div class="nueva-cfrd-grid" style="display: grid; grid-template-columns: repeat(' . esc_attr($this->atts['columns']) . ', 1fr); gap: 20px;">';
+        foreach ($this->data as $item) {
+            $this->render_item_card($item);
+        }
+        echo '</div>';
+    }
+
+    private function render_list()
+    {
+        echo '<ul class="nueva-cfrd-list">';
+        foreach ($this->data as $item) {
+            echo '<li class="nueva-cfrd-item">';
+            $this->render_item_content($item);
+            echo '</li>';
+        }
+        echo '</ul>';
+    }
+
+    private function render_table()
+    {
+        if (empty($this->data))
+            return;
+
+        $headers = array_keys($this->data[0]);
+
+        echo '<div class="nueva-table-responsive">';
+        echo '<table class="nueva-cfrd-table">';
+        echo '<thead><tr>';
+        foreach ($headers as $header) {
+            echo '<th>' . esc_html(ucfirst(str_replace('_', ' ', $header))) . '</th>';
+        }
+        echo '</tr></thead>';
+        echo '<tbody>';
+        foreach ($this->data as $item) {
+            echo '<tr>';
+            foreach ($item as $key => $value) {
+                echo '<td>' . $this->format_value($value) . '</td>';
+            }
+            echo '</tr>';
+        }
+        echo '</tbody>';
+        echo '</table>';
+        echo '</div>';
+    }
+
+    private function render_accordion()
+    {
+        echo '<div class="nueva-cfrd-accordion">';
+        foreach ($this->data as $index => $item) {
+            $keys = array_keys($item);
+            $title_key = isset($keys[0]) ? $keys[0] : '';
+            $title = isset($item[$title_key]) ? $item[$title_key] : 'Item ' . ($index + 1);
+
+            echo '<div class="nueva-accordion-item">';
+            echo '<button class="nueva-accordion-header">' . esc_html($this->format_value($title)) . '</button>';
+            echo '<div class="nueva-accordion-content">';
+            $this->render_item_content($item, array($title_key));
+            echo '</div>';
+            echo '</div>';
+        }
+        echo '</div>';
+    }
+
+    private function render_tabs()
+    {
+        echo '<div class="nueva-cfrd-tabs">';
+        echo '<ul class="nueva-tabs-nav">';
+        foreach ($this->data as $index => $item) {
+            $class = $index === 0 ? 'active' : '';
+            echo '<li class="' . $class . '" data-tab="tab-' . $index . '">Tab ' . ($index + 1) . '</li>';
+        }
+        echo '</ul>';
+        echo '<div class="nueva-tabs-content">';
+        foreach ($this->data as $index => $item) {
+            $class = $index === 0 ? 'active' : '';
+            echo '<div class="nueva-tab-pane ' . $class . '" id="tab-' . $index . '">';
+            $this->render_item_content($item);
+            echo '</div>';
+        }
+        echo '</div>';
+        echo '</div>';
+    }
+
+    private function render_slider()
+    {
+        echo '<div class="swiper nueva-cfrd-slider"><div class="swiper-wrapper">';
+        foreach ($this->data as $item) {
+            echo '<div class="swiper-slide">';
+            $this->render_item_card($item);
+            echo '</div>';
+        }
+        echo '</div><div class="swiper-pagination"></div><div class="swiper-button-next"></div><div class="swiper-button-prev"></div></div>';
+    }
+
+    private function render_masonry()
+    {
+        echo '<div class="nueva-cfrd-masonry">';
+        foreach ($this->data as $item) {
+            echo '<div class="nueva-masonry-item">';
+            $this->render_item_card($item);
+            echo '</div>';
+        }
+        echo '</div>';
+    }
+
+    private function render_compact()
+    {
+        echo '<div class="nueva-cfrd-compact">';
+        foreach ($this->data as $item) {
+            echo '<div class="nueva-compact-item">';
+            $this->render_item_inline($item);
+            echo '</div>';
+        }
+        echo '</div>';
+    }
+
+    private function render_split()
+    {
+        echo '<div class="nueva-cfrd-split">';
+        foreach ($this->data as $item) {
+            echo '<div class="nueva-split-row">';
+            $keys = array_keys($item);
+            $half = ceil(count($keys) / 2);
+            $left = array_slice($item, 0, $half, true);
+            $right = array_slice($item, $half, null, true);
+
+            echo '<div class="nueva-split-left">';
+            $this->render_item_content($left);
+            echo '</div>';
+            echo '<div class="nueva-split-right">';
+            $this->render_item_content($right);
+            echo '</div>';
+            echo '</div>';
+        }
+        echo '</div>';
+    }
+
+    private function render_stacked()
+    {
+        echo '<div class="nueva-cfrd-stacked">';
+        foreach ($this->data as $item) {
+            echo '<div class="nueva-stacked-section">';
+            $this->render_item_content($item);
+            echo '</div>';
+        }
+        echo '</div>';
+    }
+
+    private function render_timeline()
+    {
+        echo '<div class="nueva-cfrd-timeline">';
+        foreach ($this->data as $index => $item) {
+            $side = ($index % 2 === 0) ? 'left' : 'right';
+            echo '<div class="nueva-timeline-item ' . $side . '">';
+            echo '<div class="nueva-timeline-content">';
+            $this->render_item_content($item);
+            echo '</div>';
+            echo '</div>';
+        }
+        echo '</div>';
+    }
+
+    private function render_comparison()
+    {
+        echo '<div class="nueva-cfrd-comparison" style="display: flex; overflow-x: auto;">';
+        echo '<div class="nueva-comparison-labels">';
+        $keys = array_keys($this->data[0] ?? []);
+        foreach ($keys as $key) {
+            echo '<div class="nueva-comp-label">' . esc_html(ucfirst($key)) . '</div>';
+        }
+        echo '</div>';
+
+        foreach ($this->data as $item) {
+            echo '<div class="nueva-comparison-col">';
+            foreach ($keys as $key) {
+                $val = $item[$key] ?? '';
+                echo '<div class="nueva-comp-value">' . $this->format_value($val) . '</div>';
+            }
+            echo '</div>';
+        }
+        echo '</div>';
+    }
+
+    private function render_zigzag()
+    {
+        echo '<div class="nueva-cfrd-zigzag">';
+        foreach ($this->data as $index => $item) {
+            $reverse = ($index % 2 !== 0) ? 'nueva-row-reverse' : '';
+            echo '<div class="nueva-zigzag-row ' . $reverse . '">';
+
+            $image_key = null;
+            foreach ($item as $k => $v) {
+                if (is_array($v) && isset($v['url'])) {
+                    $image_key = $k;
+                    break;
+                }
+            }
+
+            echo '<div class="nueva-zigzag-media">';
+            if ($image_key && isset($item[$image_key])) {
+                echo $this->format_value($item[$image_key]);
+            } else {
+                echo '<div class="nueva-placeholder-img">Image</div>';
+            }
+            echo '</div>';
+
+            echo '<div class="nueva-zigzag-content">';
+            $this->render_item_content($item, $image_key ? array($image_key) : array());
+            echo '</div>';
+
+            echo '</div>';
+        }
+        echo '</div>';
+    }
+
+    private function render_filterable()
+    {
+        $categories = array();
+        $filter_key = '';
+        foreach ($this->data as $item) {
+            foreach (['category', 'tag', 'type'] as $k) {
+                if (isset($item[$k])) {
+                    $val = is_array($item[$k]) ? ($item[$k]['name'] ?? $item[$k][0] ?? '') : $item[$k];
+                    if ($val) {
+                        $categories[$val] = sanitize_title($val);
+                        if (!$filter_key)
+                            $filter_key = $k;
+                    }
+                }
+            }
+        }
+
+        echo '<div class="nueva-cfrd-filterable">';
+        if (!empty($categories)) {
+            echo '<div class="nueva-filter-controls">';
+            echo '<button class="active" data-filter="*">All</button>';
+            foreach ($categories as $name => $slug) {
+                echo '<button data-filter=".' . esc_attr($slug) . '">' . esc_html($name) . '</button>';
+            }
+            echo '</div>';
+        }
+
+        echo '<div class="nueva-filter-grid">';
+        foreach ($this->data as $item) {
+            $classes = ['nueva-filter-item'];
+            if ($filter_key && isset($item[$filter_key])) {
+                $val = is_array($item[$filter_key]) ? ($item[$filter_key]['name'] ?? $item[$filter_key][0] ?? '') : $item[$filter_key];
+                $classes[] = sanitize_title($val);
+            }
+            echo '<div class="' . implode(' ', $classes) . '">';
+            $this->render_item_card($item);
+            echo '</div>';
+        }
+        echo '</div>';
+        echo '</div>';
+    }
+
+    private function render_expandable()
+    {
+        echo '<div class="nueva-cfrd-grid nueva-expandable-grid">';
+        foreach ($this->data as $index => $item) {
+            echo '<div class="nueva-card nueva-expandable-card">';
+            echo '<div class="nueva-card-preview">';
+            $this->render_item_content(array_slice($item, 0, 2, true));
+            echo '<button class="nueva-expand-btn">Expand</button>';
+            echo '</div>';
+            echo '<div class="nueva-card-full" style="display:none;">';
+            $this->render_item_content(array_slice($item, 2, null, true));
+            echo '</div>';
+            echo '</div>';
+        }
+        echo '</div>';
+    }
+
+    private function render_hover_reveal()
+    {
+        echo '<div class="nueva-cfrd-grid">';
+        foreach ($this->data as $item) {
+            echo '<div class="nueva-card nueva-hover-reveal">';
+            echo '<div class="nueva-reveal-visible">';
+            $keys = array_keys($item);
+            $first = $item[$keys[0]] ?? '';
+            echo $this->format_value($first);
+            echo '</div>';
+            echo '<div class="nueva-reveal-hidden">';
+            $this->render_item_content($item, array($keys[0]));
+            echo '</div>';
+            echo '</div>';
+        }
+        echo '</div>';
+    }
+
+    private function render_master_detail()
+    {
+        echo '<div class="nueva-cfrd-master-detail">';
+        echo '<div class="nueva-master-list">';
+        foreach ($this->data as $index => $item) {
+            $keys = array_keys($item);
+            $title = $item[$keys[0]] ?? 'Item ' . ($index + 1);
+            $active = $index === 0 ? 'active' : '';
+            echo '<div class="nueva-master-item ' . $active . '" data-index="' . $index . '">';
+            echo '<strong>' . esc_html(strip_tags($this->format_value($title))) . '</strong>';
+            echo '</div>';
+        }
+        echo '</div>';
+
+        echo '<div class="nueva-detail-view">';
+        foreach ($this->data as $index => $item) {
+            $active = $index === 0 ? 'active' : '';
+            echo '<div class="nueva-detail-pane ' . $active . '" data-index="' . $index . '">';
+            $this->render_item_content($item);
+            echo '</div>';
+        }
+        echo '</div>';
+        echo '</div>';
+    }
+
+    // --- Helpers ---
+
+    private function render_item_card($item)
+    {
+        echo '<div class="nueva-card">';
+        $this->render_item_content($item);
+        echo '</div>';
+    }
+
+    private function render_item_inline($item)
+    {
+        echo '<div class="nueva-inline-row">';
+        foreach ($item as $key => $value) {
+            echo '<span class="nueva-inline-field"><strong>' . esc_html($key) . ':</strong> ' . $this->format_value($value) . '</span> ';
+        }
+        echo '</div>';
+    }
+
+    private function render_item_content($item, $exclude_keys = array())
+    {
+        if (!is_array($item)) {
+            echo $this->format_value($item);
+            return;
+        }
+
+        foreach ($item as $key => $value) {
+            if (in_array($key, $exclude_keys))
+                continue;
+
+            echo '<div class="nueva-field nueva-field-' . esc_attr($key) . '">';
+            echo '<strong class="nueva-label">' . esc_html(ucfirst(str_replace('_', ' ', $key))) . ': </strong>';
+            echo '<span class="nueva-value">' . $this->format_value($value) . '</span>';
+            echo '</div>';
+        }
+    }
+
+    private function format_value($value)
+    {
+        if (is_array($value)) {
+            if (isset($value['url'])) {
+                return '<img src="' . esc_url($value['url']) . '" alt="' . esc_attr($value['alt'] ?? '') . '" />';
+            }
+            return implode(', ', $value);
+        }
+        return wp_kses_post($value);
+    }
+}
