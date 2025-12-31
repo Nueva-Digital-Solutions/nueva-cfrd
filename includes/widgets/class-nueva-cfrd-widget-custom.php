@@ -79,8 +79,6 @@ class Nueva_CFRD_Widget_Custom extends Nueva_CFRD_Widget_Base
 
         $this->end_controls_section();
 
-        $this->end_controls_section();
-
         // Custom Loop Template (Hook)
         $this->register_content_controls();
     }
