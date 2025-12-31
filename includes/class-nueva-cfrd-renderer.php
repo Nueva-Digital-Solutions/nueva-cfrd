@@ -136,16 +136,8 @@ class Nueva_CFRD_Renderer
 
         // 1. Try ACF (get_field)
         if (function_exists('get_field')) {
-            // Try specific Post ID
             $this->data = get_field($field, $post_id);
 
-            // If empty, usually means:
-            // a) Wrong ID
-            // b) Field Name wrong
-            // c) It's actually an Option Page field
-            // d) Empty data
-
-            // Fallback: Check 'option' (Common user error: detecting from option page but rendering on post)
             if (empty($this->data)) {
                 $option_data = get_field($field, 'option');
                 if (!empty($option_data) && is_array($option_data)) {
@@ -168,6 +160,102 @@ class Nueva_CFRD_Renderer
         if (!is_array($this->data)) {
             $this->data = array();
         }
+
+        // --- DEBUG MODE (Admin Only) ---
+        if (empty($this->data) && current_user_can('edit_posts')) {
+            echo '<div style="background:#fff3cd; color:#856404; padding:15px; border:1px solid #ffeeba; margin-bottom:20px;">';
+            echo '<strong>⚠️ Debug Info for Admin:</strong><br>';
+            echo 'Target Field: <code>' . esc_html($field) . '</code> on Post ID: <code>' . $post_id . '</code><br>';
+
+            // Show all available keys
+            $all_meta = get_post_meta($post_id);
+            echo '<details><summary>Click to see all available Meta Keys on this Post</summary>';
+            echo '<pre style="height:200px; overflow:auto; background:#fff; padding:10px;">';
+            foreach ($all_meta as $k => $v) {
+                if (strpos($k, '_') === 0)
+                    continue; // Skip hidden
+                echo "[$k] => " . (is_serialized($v[0]) ? 'Array (Serialized)' : $v[0]) . "\n";
+            }
+            echo '</pre></details>';
+            echo '</div>';
+        }
+    }
+
+    private function generate_styles()
+    {
+        $css = '';
+        $id = $this->config_id;
+        $config = get_post_meta($id, 'nueva_style_config', true);
+
+        if (!$config)
+            return;
+
+        // Font Loading
+        $fonts = [];
+        if (!empty($config['normal']['font_family']))
+            $fonts[] = $config['normal']['font_family'];
+        if (!empty($config['hover']['font_family']))
+            $fonts[] = $config['hover']['font_family'];
+
+        if (!empty($fonts)) {
+            $fonts = array_unique($fonts);
+            foreach ($fonts as $f) {
+                $css .= "@import url('https://fonts.googleapis.com/css2?family=" . str_replace(' ', '+', $f) . ":wght@400;700&display=swap');";
+            }
+        }
+
+        // Styles
+        $states = [
+            'normal' => ".nueva-id-{$id} .nueva-card-builder",
+            'hover' => ".nueva-id-{$id} .nueva-card-builder:hover"
+        ];
+
+        foreach ($states as $type => $selector) {
+            if (empty($config[$type]))
+                continue;
+            $vals = $config[$type];
+            $props = '';
+
+            if (!empty($vals['font_family']))
+                $props .= "font-family: '" . $vals['font_family'] . "', sans-serif; ";
+            if (!empty($vals['color']))
+                $props .= "color: " . $vals['color'] . "; ";
+            if (!empty($vals['bg_color']))
+                $props .= "background-color: " . $vals['bg_color'] . "; ";
+
+            foreach (['margin', 'padding'] as $box) {
+                if (!empty($vals[$box])) {
+                    foreach (['top', 'right', 'bottom', 'left'] as $side) {
+                        if (isset($vals[$box][$side]) && $vals[$box][$side] !== '') {
+                            $props .= "{$box}-{$side}: " . $vals[$box][$side] . "px; ";
+                        }
+                    }
+                }
+            }
+
+            if (!empty($vals['border'])) {
+                $has = false;
+                foreach (['top', 'right', 'bottom', 'left'] as $side) {
+                    if (isset($vals['border'][$side]) && $vals['border'][$side] !== '') {
+                        $props .= "border-{$side}-width: " . $vals['border'][$side] . "px; ";
+                        $props .= "border-{$side}-style: solid; ";
+                        $has = true;
+                    }
+                }
+                if ($has && !empty($vals['border_color']))
+                    $props .= "border-color: " . $vals['border_color'] . "; ";
+            }
+
+            if ($props)
+                $css .= "{$selector} { {$props} } ";
+        }
+
+        // Custom CSS
+        $custom = get_post_meta($id, 'nueva_custom_css', true);
+        if ($custom)
+            $css .= strip_tags($custom);
+
+        $this->styles_css = $css;
     }
 
     // --- Layout Renderers ---
@@ -495,9 +583,16 @@ class Nueva_CFRD_Renderer
 
     private function render_item_card($item)
     {
-        echo '<div class="nueva-card">';
-        $this->render_item_content($item);
-        echo '</div>';
+        // If config, render with wrapper
+        if (!empty($this->config_id)) {
+            echo '<div class="nueva-card-builder">';
+            $this->render_item_content($item);
+            echo '</div>';
+        } else {
+            echo '<div class="nueva-card">';
+            $this->render_item_content($item);
+            echo '</div>';
+        }
     }
 
     private function render_item_inline($item)
