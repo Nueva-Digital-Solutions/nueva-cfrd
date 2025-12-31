@@ -179,7 +179,7 @@ class Nueva_CFRD_Elementor_Widget extends \Elementor\Widget_Base
             foreach ($settings['sub_fields_list'] as $field) {
                 // Ensure name is clean, critical for matching logic
                 $sub_fields[] = [
-                    'name' => trim($field['name']), 
+                    'name' => trim($field['name']),
                     'type' => $field['type'],
                     'show_label' => $field['show_label'] === 'yes'
                 ];
@@ -202,5 +202,4 @@ class Nueva_CFRD_Elementor_Widget extends \Elementor\Widget_Base
         $renderer = new \Nueva_CFRD_Renderer($renderer_args);
         echo $renderer->render();
     }
-}
 }
