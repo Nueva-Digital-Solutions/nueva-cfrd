@@ -312,23 +312,19 @@ abstract class Nueva_CFRD_Widget_Base extends \Elementor\Widget_Base
         $sub_fields = [];
         if (!empty($settings['sub_fields_list'])) {
             foreach ($settings['sub_fields_list'] as $field) {
-                // Generate Custom CSS for this field
-                $css = '';
-                if (!empty($field['text_color'])) {
-                    $css .= 'color: ' . $field['text_color'] . ';';
-                }
-                if (!empty($field['font_size']['size'])) {
-                    $css .= 'font-size: ' . $field['font_size']['size'] . $field['font_size']['unit'] . ';';
-                }
-                if (!empty($field['font_weight'])) {
-                    $css .= 'font-weight: ' . $field['font_weight'] . ';';
-                }
 
-                $sub_fields[] = [
+                // Extract Config for Renderer
+                $config = [
                     'name' => trim($field['name']),
                     'type' => $field['type'],
-                    'style' => $css
+                    'heading_tag' => $field['heading_tag'] ?? 'h3',
+                    'video_ratio' => $field['video_ratio'] ?? '169',
+                    // Image/Text Styling is handled via Elementor Selectors CSS, 
+                    // so we don't strictly need to pass style strings manually anymore,
+                    // BUT Renderer needs to know the TAG to render.
                 ];
+
+                $sub_fields[] = $config;
             }
         }
 
