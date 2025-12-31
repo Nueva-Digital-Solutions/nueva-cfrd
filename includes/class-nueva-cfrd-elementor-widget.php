@@ -64,6 +64,7 @@ class Nueva_CFRD_Elementor_Widget extends \Elementor\Widget_Base
                     'current' => esc_html__('Current Post', 'nueva-cfrd'),
                     'custom' => esc_html__('Custom Post ID', 'nueva-cfrd'),
                     'option' => esc_html__('Option Page', 'nueva-cfrd'),
+                    'taxonomy' => esc_html__('Current Taxonomy Term', 'nueva-cfrd'),
                 ],
             ]
         );
@@ -171,6 +172,12 @@ class Nueva_CFRD_Elementor_Widget extends \Elementor\Widget_Base
             $post_id = $settings['custom_post_id'];
         } elseif ('option' === $settings['post_id_source']) {
             $post_id = 'option';
+        } elseif ('taxonomy' === $settings['post_id_source']) {
+            $obj = get_queried_object();
+            if ($obj instanceof \WP_Term) {
+                // ACF format for terms is 'taxonomy_term_id' (e.g. category_123)
+                $post_id = $obj->taxonomy . '_' . $obj->term_id;
+            }
         }
 
         // Prepare Sub Fields array for Renderer
