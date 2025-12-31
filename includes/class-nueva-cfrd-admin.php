@@ -9,7 +9,6 @@ class Nueva_CFRD_Admin
         add_action('save_post', array($this, 'save_meta'));
         add_action('admin_enqueue_scripts', array($this, 'enqueue_admin_assets'));
         add_action('wp_ajax_nueva_fetch_fields', array($this, 'ajax_fetch_fields'));
-        add_action('admin_notices', array($this, 'show_debug_notice'));
     }
 
     public function enqueue_admin_assets($hook)
@@ -271,8 +270,8 @@ class Nueva_CFRD_Admin
         </div>
 
         <script type="text/template" id="nueva-field-template">
-                                            <?php $this->render_sub_field_row('{{INDEX}}', array()); ?>
-                                        </script>
+                                                    <?php $this->render_sub_field_row('{{INDEX}}', array()); ?>
+                                                </script>
         <?php
     }
 
