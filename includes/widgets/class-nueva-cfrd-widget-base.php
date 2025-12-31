@@ -23,7 +23,13 @@ abstract class Nueva_CFRD_Widget_Base extends \Elementor\Widget_Base
 
     protected function register_controls()
     {
-        // --- CONTENT SECTION ---
+        $this->register_common_controls();
+        $this->register_repeater_controls();
+        $this->register_style_controls();
+    }
+
+    protected function register_common_controls()
+    {
         $this->start_controls_section(
             'content_section',
             [
@@ -69,7 +75,20 @@ abstract class Nueva_CFRD_Widget_Base extends \Elementor\Widget_Base
             ]
         );
 
+        $this->end_controls_section();
+    }
+
+    protected function register_repeater_controls()
+    {
         // --- SUB FIELDS REPEATER ---
+        $this->start_controls_section(
+            'repeater_config_section',
+            [
+                'label' => esc_html__('Structure & Fields', 'nueva-cfrd'),
+                'tab' => \Elementor\Controls_Manager::TAB_CONTENT,
+            ]
+        );
+
         $repeater = new \Elementor\Repeater();
 
         $repeater->add_control(
@@ -89,58 +108,95 @@ abstract class Nueva_CFRD_Widget_Base extends \Elementor\Widget_Base
                 'type' => \Elementor\Controls_Manager::SELECT,
                 'default' => 'text',
                 'options' => [
-                    'text' => 'Text',
-                    'image' => 'Image (URL/Array)',
-                    'link' => 'Link (URL/Array)',
-                    'html' => 'HTML / WYSIWYG',
+                    'text' => 'Span / Text',
+                    'paragraph' => 'Paragraph (P)',
+                    'heading' => 'Heading',
+                    'image' => 'Image',
+                    'video' => 'Video (URL)',
+                    'link' => 'Link (Button/A)',
+                    'html' => 'Raw HTML',
                 ],
             ]
         );
 
+        // Heading Tag
         $repeater->add_control(
-            'text_color',
+            'heading_tag',
             [
-                'label' => esc_html__('Text Color', 'nueva-cfrd'),
+                'label' => esc_html__('HTML Tag', 'nueva-cfrd'),
+                'type' => \Elementor\Controls_Manager::SELECT,
+                'default' => 'h3',
+                'options' => [
+                    'h1' => 'H1',
+                    'h2' => 'H2',
+                    'h3' => 'H3',
+                    'h4' => 'H4',
+                    'h5' => 'H5',
+                    'h6' => 'H6',
+                    'div' => 'div',
+                    'span' => 'span',
+                ],
+                'condition' => ['type' => ['heading', 'text', 'paragraph']],
+            ]
+        );
+
+        // Image Controls
+        $repeater->add_control(
+            'image_size',
+            [
+                'label' => esc_html__('Width', 'nueva-cfrd'),
+                'type' => \Elementor\Controls_Manager::SLIDER,
+                'size_units' => ['px', '%'],
+                'range' => [
+                    'px' => ['min' => 0, 'max' => 1000],
+                    '%' => ['min' => 0, 'max' => 100],
+                ],
+                'default' => ['unit' => '%', 'size' => 100],
+                'selectors' => [
+                    '{{WRAPPER}} {{CURRENT_ITEM}} img' => 'width: {{SIZE}}{{UNIT}};',
+                    '{{WRAPPER}} {{CURRENT_ITEM}} .nueva-image' => 'width: {{SIZE}}{{UNIT}};',
+                ],
+                'condition' => ['type' => 'image'],
+            ]
+        );
+
+        // Video Controls
+        $repeater->add_control(
+            'video_ratio',
+            [
+                'label' => esc_html__('Aspect Ratio', 'nueva-cfrd'),
+                'type' => \Elementor\Controls_Manager::SELECT,
+                'default' => '169',
+                'options' => [
+                    '169' => '16:9',
+                    '43' => '4:3',
+                    '11' => '1:1',
+                ],
+                'condition' => ['type' => 'video'],
+            ]
+        );
+
+        // Styling
+        $repeater->add_control(
+            'item_text_color',
+            [
+                'label' => esc_html__('Color', 'nueva-cfrd'),
                 'type' => \Elementor\Controls_Manager::COLOR,
                 'selectors' => [
                     '{{WRAPPER}} {{CURRENT_ITEM}} .nueva-value' => 'color: {{VALUE}}',
+                    '{{WRAPPER}} {{CURRENT_ITEM}} a' => 'color: {{VALUE}}',
+                    '{{WRAPPER}} {{CURRENT_ITEM}} h1, {{WRAPPER}} {{CURRENT_ITEM}} h2, {{WRAPPER}} {{CURRENT_ITEM}} h3' => 'color: {{VALUE}}',
                 ],
-                // We handle render manually via 'style' param, but UI is good
+                'condition' => ['type' => ['text', 'paragraph', 'heading', 'link', 'html']],
             ]
         );
 
-        $repeater->add_control(
-            'font_size',
+        $repeater->add_group_control(
+            \Elementor\Group_Control_Typography::get_type(),
             [
-                'label' => esc_html__('Font Size (px)', 'nueva-cfrd'),
-                'type' => \Elementor\Controls_Manager::SLIDER,
-                'size_units' => ['px', 'em', 'rem'],
-                'range' => [
-                    'px' => ['min' => 10, 'max' => 100],
-                ],
-                'default' => [
-                    'unit' => 'px',
-                ],
-            ]
-        );
-
-        $repeater->add_control(
-            'font_weight',
-            [
-                'label' => esc_html__('Font Weight', 'nueva-cfrd'),
-                'type' => \Elementor\Controls_Manager::SELECT,
-                'default' => '',
-                'options' => [
-                    '' => 'Default',
-                    'normal' => 'Normal',
-                    'bold' => 'Bold',
-                    '300' => '300 (Light)',
-                    '400' => '400 (Regular)',
-                    '500' => '500 (Medium)',
-                    '600' => '600 (Semi-Bold)',
-                    '700' => '700 (Bold)',
-                    '900' => '900 (Black)',
-                ],
+                'name' => 'item_typography',
+                'selector' => '{{WRAPPER}} {{CURRENT_ITEM}} .nueva-value',
+                'condition' => ['type' => ['text', 'paragraph', 'heading', 'link']],
             ]
         );
 
@@ -159,19 +215,16 @@ abstract class Nueva_CFRD_Widget_Base extends \Elementor\Widget_Base
                 'title_field' => '{{{ name }}}',
             ]
         );
-        // --- END REPEATER ---
-
-        // Hook for child classes to add specific content controls? 
-        // Maybe later.
 
         $this->end_controls_section();
 
         // Allow Child Classes to add Content Controls (e.g. Custom Loop Template)
         $this->register_content_controls();
+    }
 
-
+    protected function register_style_controls()
+    {
         // --- STYLE TAB ---
-
         $this->start_controls_section(
             'style_section',
             [
@@ -239,11 +292,11 @@ abstract class Nueva_CFRD_Widget_Base extends \Elementor\Widget_Base
 
         $this->end_controls_section();
 
-        // Typography Section
+        // Typography Section (Global Fallback)
         $this->start_controls_section(
             'typography_section',
             [
-                'label' => esc_html__('Typography', 'nueva-cfrd'),
+                'label' => esc_html__('Title/Text Typography', 'nueva-cfrd'),
                 'tab' => \Elementor\Controls_Manager::TAB_STYLE,
             ]
         );
