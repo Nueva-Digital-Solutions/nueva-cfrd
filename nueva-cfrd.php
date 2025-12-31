@@ -21,11 +21,11 @@ define('NUEVA_CFRD_URL', plugin_dir_url(__FILE__));
 
 // Include Core Class
 require_once NUEVA_CFRD_PATH . 'includes/class-nueva-cfrd-core.php';
-require_once NUEVA_CFRD_PATH . 'includes/class-nueva-cfrd-cpt.php';
+// require_once NUEVA_CFRD_PATH . 'includes/class-nueva-cfrd-cpt.php';
 
-if (is_admin()) {
-    require_once NUEVA_CFRD_PATH . 'includes/class-nueva-cfrd-admin.php';
-}
+// if (is_admin()) {
+//     require_once NUEVA_CFRD_PATH . 'includes/class-nueva-cfrd-admin.php';
+// }
 
 // Initialize Plugin
 function nueva_cfrd_init()
