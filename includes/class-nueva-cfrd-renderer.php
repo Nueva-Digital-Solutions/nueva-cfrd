@@ -154,6 +154,40 @@ class Nueva_CFRD_Renderer
         return ob_get_clean();
     }
 
+    public function render_custom_loop($template)
+    {
+        ob_start();
+        $this->fetch_data();
+        $this->generate_styles(); // For generic styles if any
+
+        // Wrapper
+        echo '<div class="nueva-cfrd-custom-loop nueva-id-' . esc_attr($this->config_id) . '">';
+
+        foreach ($this->data as $item) {
+            if (!is_array($item))
+                continue;
+
+            $item_html = $template;
+
+            // Basic mustache replacement logic: {{ key }}
+            foreach ($item as $key => $value) {
+                // Determine format
+                $formatted_value = $this->format_value($value, 'text'); // default to text for now
+                // We could enhance this to sniff type or allow {{key:image}} syntax later
+
+                // Case-insensitive replacement
+                $item_html = str_ireplace('{{' . $key . '}}', $formatted_value, $item_html);
+            }
+
+            // Cleanup unused tags? Optional.
+
+            echo $item_html;
+        }
+
+        echo '</div>';
+        return ob_get_clean();
+    }
+
     private function fetch_data()
     {
         $post_id = $this->atts['post_id'];
