@@ -633,20 +633,20 @@ class Nueva_CFRD_Renderer
         // If sub_fields are configured (from Builder), use them to filter and order
         if (!empty($this->atts['sub_fields']) && is_array($this->atts['sub_fields'])) {
 
-            // Normalize Item Keys for searching
+            // Normalize Item Keys for searching (Trim + Lowercase)
             $normalized_item = [];
             foreach ($item as $k => $v) {
-                $normalized_item[trim($k)] = $v;
+                $normalized_item[strtolower(trim($k))] = $v;
             }
 
             foreach ($this->atts['sub_fields'] as $field_config) {
                 // Determine Key, Type, and Show Label
                 if (is_array($field_config)) {
-                    $target_key = trim($field_config['name'] ?? '');
+                    $target_key = strtolower(trim($field_config['name'] ?? ''));
                     $type = $field_config['type'] ?? 'text';
                     $show_label = isset($field_config['show_label']) ? filter_var($field_config['show_label'], FILTER_VALIDATE_BOOLEAN) : true;
                 } else {
-                    $target_key = trim($field_config);
+                    $target_key = strtolower(trim($field_config));
                     $type = 'text';
                     $show_label = true;
                 }
