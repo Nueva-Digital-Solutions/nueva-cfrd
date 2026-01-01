@@ -737,8 +737,11 @@ class Nueva_CFRD_Renderer
                     continue;
 
                 echo '<div class="nueva-field nueva-field-' . esc_attr($key) . '">';
-                // For fallback, we HAVE to show label, but user can hide via CSS if desperate
-                echo '<strong class="nueva-label">' . esc_html(ucfirst(str_replace('_', ' ', $key))) . ': </strong>';
+                // For fallback, we default to showing labels, but hide them for cleaner layouts like List/Slider
+                // unless the user specifically wants them (which they can't config here yet, so we choose defaults).
+                if (!in_array($this->atts['layout'], ['list', 'slider', 'carousel', 'card-deck'])) {
+                    echo '<strong class="nueva-label">' . esc_html(ucfirst(str_replace('_', ' ', $key))) . ': </strong>';
+                }
                 echo '<span class="nueva-value">' . $this->format_value($value) . '</span>';
                 echo '</div>';
             }
