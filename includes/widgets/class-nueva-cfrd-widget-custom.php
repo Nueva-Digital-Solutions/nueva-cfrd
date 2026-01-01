@@ -267,6 +267,11 @@ class Nueva_CFRD_Widget_Custom extends Nueva_CFRD_Widget_Base
 
         // 4. Render Main Loop
 
+        // Ensure Renderer Class is loaded
+        if (!class_exists('Nueva_CFRD_Renderer')) {
+            require_once NUEVA_CFRD_PATH . 'includes/class-nueva-cfrd-renderer.php';
+        }
+
         // Determine Post ID (Copied from Widget_Base)
         $post_id = get_the_ID();
         if (isset($settings['post_id_source'])) {
