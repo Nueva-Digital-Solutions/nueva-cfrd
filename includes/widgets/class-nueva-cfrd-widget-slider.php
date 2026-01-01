@@ -55,6 +55,15 @@ class Nueva_CFRD_Widget_Slider extends Nueva_CFRD_Widget_Base
         );
 
         $this->add_control(
+            'slider_dots',
+            [
+                'label' => esc_html__('Show Dots', 'nueva-cfrd'),
+                'type' => \Elementor\Controls_Manager::SWITCHER,
+                'default' => 'yes',
+            ]
+        );
+
+        $this->add_control(
             'slider_arrows',
             [
                 'label' => esc_html__('Show Arrows', 'nueva-cfrd'),
@@ -64,12 +73,78 @@ class Nueva_CFRD_Widget_Slider extends Nueva_CFRD_Widget_Base
         );
 
         $this->add_control(
-            'slider_dots',
+            'arrow_type',
             [
-                'label' => esc_html__('Show Dots', 'nueva-cfrd'),
-                'type' => \Elementor\Controls_Manager::SWITCHER,
-                'default' => 'yes',
+                'label' => esc_html__('Arrow Type', 'nueva-cfrd'),
+                'type' => \Elementor\Controls_Manager::SELECT,
+                'default' => 'default',
+                'options' => [
+                    'default' => 'Default',
+                    'icon' => 'Icon Library',
+                    'custom' => 'Custom Image/SVG',
+                ],
+                'condition' => ['slider_arrows' => 'yes'],
             ]
         );
+
+        $this->add_control(
+            'arrow_icon_prev',
+            [
+                'label' => esc_html__('Previous Icon', 'nueva-cfrd'),
+                'type' => \Elementor\Controls_Manager::ICONS,
+                'default' => [
+                    'value' => 'fas fa-chevron-left',
+                    'library' => 'fa-solid',
+                ],
+                'condition' => ['slider_arrows' => 'yes', 'arrow_type' => 'icon'],
+            ]
+        );
+
+        $this->add_control(
+            'arrow_icon_next',
+            [
+                'label' => esc_html__('Next Icon', 'nueva-cfrd'),
+                'type' => \Elementor\Controls_Manager::ICONS,
+                'default' => [
+                    'value' => 'fas fa-chevron-right',
+                    'library' => 'fa-solid',
+                ],
+                'condition' => ['slider_arrows' => 'yes', 'arrow_type' => 'icon'],
+            ]
+        );
+
+        $this->add_control(
+            'arrow_image_prev',
+            [
+                'label' => esc_html__('Previous Image', 'nueva-cfrd'),
+                'type' => \Elementor\Controls_Manager::MEDIA,
+                'condition' => ['slider_arrows' => 'yes', 'arrow_type' => 'custom'],
+            ]
+        );
+
+        $this->add_control(
+            'arrow_image_next',
+            [
+                'label' => esc_html__('Next Image', 'nueva-cfrd'),
+                'type' => \Elementor\Controls_Manager::MEDIA,
+                'condition' => ['slider_arrows' => 'yes', 'arrow_type' => 'custom'],
+            ]
+        );
+    }
+
+    protected function get_renderer_args($settings)
+    {
+        return [
+            'slider_autoplay' => $settings['slider_autoplay'],
+            'slider_speed' => $settings['slider_speed'],
+            'slider_loop' => $settings['slider_loop'],
+            'slider_dots' => $settings['slider_dots'],
+            'slider_arrows' => $settings['slider_arrows'],
+            'arrow_type' => $settings['arrow_type'] ?? 'default',
+            'arrow_icon_prev' => $settings['arrow_icon_prev'] ?? [],
+            'arrow_icon_next' => $settings['arrow_icon_next'] ?? [],
+            'arrow_image_prev' => $settings['arrow_image_prev'] ?? [],
+            'arrow_image_next' => $settings['arrow_image_next'] ?? [],
+        ];
     }
 }

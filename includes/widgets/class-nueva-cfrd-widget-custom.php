@@ -51,6 +51,23 @@ class Nueva_CFRD_Widget_Custom extends Nueva_CFRD_Widget_Base
         );
 
         $this->add_control(
+            'css_libs',
+            [
+                'label' => esc_html__('External CSS Libraries (URLs)', 'nueva-cfrd'),
+                'type' => \Elementor\Controls_Manager::REPEATER,
+                'fields' => [
+                    [
+                        'name' => 'url',
+                        'label' => 'URL',
+                        'type' => \Elementor\Controls_Manager::TEXT,
+                        'placeholder' => 'https://example.com/style.css',
+                    ]
+                ],
+                'title_field' => '{{{ url }}}',
+            ]
+        );
+
+        $this->add_control(
             'external_libs',
             [
                 'label' => esc_html__('External JS Libraries (URLs)', 'nueva-cfrd'),
@@ -109,5 +126,40 @@ class Nueva_CFRD_Widget_Custom extends Nueva_CFRD_Widget_Base
         );
 
         $this->end_controls_section();
+    }
+    protected function render()
+    {
+        $settings = $this->get_settings_for_display();
+
+        // 1. Output External CSS Libs
+        if (!empty($settings['css_libs'])) {
+            foreach ($settings['css_libs'] as $lib) {
+                if (!empty($lib['url'])) {
+                    echo '<link rel="stylesheet" href="' . esc_url($lib['url']) . '">';
+                }
+            }
+        }
+
+        // 2. Output Custom CSS
+        if (!empty($settings['custom_css'])) {
+            echo '<style>' . $settings['custom_css'] . '</style>';
+        }
+
+        // 3. Output External JS Libs
+        if (!empty($settings['external_libs'])) {
+            foreach ($settings['external_libs'] as $lib) {
+                if (!empty($lib['url'])) {
+                    echo '<script src="' . esc_url($lib['url']) . '"></script>';
+                }
+            }
+        }
+
+        // 4. Call Parent Render (Main Loop)
+        parent::render();
+
+        // 5. Output Custom JS
+        if (!empty($settings['custom_js'])) {
+            echo '<script>' . $settings['custom_js'] . '</script>';
+        }
     }
 }

@@ -242,6 +242,8 @@ abstract class Nueva_CFRD_Widget_Base extends \Elementor\Widget_Base
                     '{{WRAPPER}} .nueva-card-builder' => 'background-color: {{VALUE}}',
                     '{{WRAPPER}} .nueva-cfrd-item' => 'background-color: {{VALUE}}',
                     '{{WRAPPER}} .nueva-card' => 'background-color: {{VALUE}}',
+                    '{{WRAPPER}} .nueva-accordion-item' => 'background-color: {{VALUE}}',
+                    '{{WRAPPER}} .nueva-cfrd-table tbody tr' => 'background-color: {{VALUE}}',
                 ],
             ]
         );
@@ -250,7 +252,7 @@ abstract class Nueva_CFRD_Widget_Base extends \Elementor\Widget_Base
             \Elementor\Group_Control_Border::get_type(),
             [
                 'name' => 'item_border',
-                'selector' => '{{WRAPPER}} .nueva-card-builder, {{WRAPPER}} .nueva-cfrd-item, {{WRAPPER}} .nueva-card',
+                'selector' => '{{WRAPPER}} .nueva-card-builder, {{WRAPPER}} .nueva-cfrd-item, {{WRAPPER}} .nueva-card, {{WRAPPER}} .nueva-accordion-item, {{WRAPPER}} .nueva-cfrd-table tbody tr',
             ]
         );
 
@@ -264,6 +266,9 @@ abstract class Nueva_CFRD_Widget_Base extends \Elementor\Widget_Base
                     '{{WRAPPER}} .nueva-card-builder' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
                     '{{WRAPPER}} .nueva-cfrd-item' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
                     '{{WRAPPER}} .nueva-card' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                    '{{WRAPPER}} .nueva-accordion-item' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                    // Table rows usually don't support border-radius easily without specific display types, but we'll include it.
+                    '{{WRAPPER}} .nueva-cfrd-table tbody tr' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
                 ],
             ]
         );
@@ -272,7 +277,7 @@ abstract class Nueva_CFRD_Widget_Base extends \Elementor\Widget_Base
             \Elementor\Group_Control_Box_Shadow::get_type(),
             [
                 'name' => 'item_box_shadow',
-                'selector' => '{{WRAPPER}} .nueva-card-builder, {{WRAPPER}} .nueva-cfrd-item, {{WRAPPER}} .nueva-card',
+                'selector' => '{{WRAPPER}} .nueva-card-builder, {{WRAPPER}} .nueva-cfrd-item, {{WRAPPER}} .nueva-card, {{WRAPPER}} .nueva-accordion-item, {{WRAPPER}} .nueva-cfrd-table tbody tr',
             ]
         );
 
@@ -286,6 +291,9 @@ abstract class Nueva_CFRD_Widget_Base extends \Elementor\Widget_Base
                     '{{WRAPPER}} .nueva-card-builder' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
                     '{{WRAPPER}} .nueva-cfrd-item' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
                     '{{WRAPPER}} .nueva-card' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                    '{{WRAPPER}} .nueva-accordion-item' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                    '{{WRAPPER}} .nueva-cfrd-table tbody tr td' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};', // Pad cells, not rows
+                    '{{WRAPPER}} .nueva-cfrd-table th' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};', // Pad headers too? Maybe not. Let's stick to cells.
                 ],
             ]
         );
@@ -295,36 +303,7 @@ abstract class Nueva_CFRD_Widget_Base extends \Elementor\Widget_Base
 
         $this->end_controls_section();
 
-        // Typography Section (Global Fallback)
-        $this->start_controls_section(
-            'typography_section',
-            [
-                'label' => esc_html__('Title/Text Typography', 'nueva-cfrd'),
-                'tab' => \Elementor\Controls_Manager::TAB_STYLE,
-            ]
-        );
-
-        $this->add_group_control(
-            \Elementor\Group_Control_Typography::get_type(),
-            [
-                'name' => 'value_typography',
-                'label' => 'Text Typography',
-                'selector' => '{{WRAPPER}} .nueva-value',
-            ]
-        );
-
-        $this->add_control(
-            'value_color',
-            [
-                'label' => esc_html__('Text Color', 'nueva-cfrd'),
-                'type' => \Elementor\Controls_Manager::COLOR,
-                'selectors' => [
-                    '{{WRAPPER}} .nueva-value' => 'color: {{VALUE}}',
-                ],
-            ]
-        );
-
-        $this->end_controls_section();
+        // Typography Section Removed as requested
     }
 
     /**

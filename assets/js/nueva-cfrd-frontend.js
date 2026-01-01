@@ -19,7 +19,12 @@ jQuery(document).ready(function ($) {
             } else {
                 // Open
                 // If 'accordion' mode, close others
-                // (We'd need to check config, but let's assume standard accordion for now if requested)
+                if (behavior === 'accordion') {
+                    $wrapper.find('.nueva-accordion-item.active').each(function () {
+                        $(this).removeClass('active');
+                        $(this).find('.nueva-accordion-content').slideUp(300);
+                    });
+                }
 
                 $content.slideDown(300);
                 $item.addClass('active');

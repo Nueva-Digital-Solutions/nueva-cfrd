@@ -302,7 +302,7 @@ class Nueva_CFRD_Renderer
 
     private function render_grid()
     {
-        $style = 'display: grid; gap: 20px;';
+        $style = 'display: grid;';
         // Only apply inline columns if NOT simple manual mode (Elementor handles its own columns via CSS)
         // Actually, if it's Elementor, it passes 'columns' too, but we want CSS to win.
         // Let's assume if 'columns' is set, we use it, BUT Elementor's CSS should invoke !important or we avoid inline.
@@ -311,6 +311,7 @@ class Nueva_CFRD_Renderer
         // If we don't (Elementor), skip inline columns so responsive controls work.
         if (!empty($this->config_id) || empty($this->atts['class']) || strpos($this->atts['class'], 'elementor') === false) {
             $style .= ' grid-template-columns: repeat(' . esc_attr($this->atts['columns']) . ', 1fr);';
+            $style .= ' gap: 20px;'; // Default gap for Manual/Shortcode mode only
         }
 
         echo '<div class="nueva-cfrd-grid" style="' . $style . '">';
@@ -336,20 +337,76 @@ class Nueva_CFRD_Renderer
         if (empty($this->data))
             return;
 
-        $headers = array_keys($this->data[0]);
+        // Determine Columns based on Config (if available) or Data keys
+        $columns = [];
+        $use_config = !empty($this->atts['sub_fields']) && is_array($this->atts['sub_fields']);
+
+        if ($use_config) {
+            foreach ($this->atts['sub_fields'] as $field) {
+                // If simple string or array, normalize
+                $name = is_array($field) ? ($field['name'] ?? '') : $field;
+                if ($name)
+                    $columns[] = $field;
+            }
+        } else {
+            // Fallback: Keys of first item
+            if (isset($this->data[0]) && is_array($this->data[0])) {
+                foreach (array_keys($this->data[0]) as $k) {
+                    $columns[] = ['name' => $k];
+                }
+            }
+        }
+
+        if (empty($columns))
+            return;
 
         echo '<div class="nueva-table-responsive">';
         echo '<table class="nueva-cfrd-table">';
+
+        // Header
         echo '<thead><tr>';
-        foreach ($headers as $header) {
-            echo '<th>' . esc_html(ucfirst(str_replace('_', ' ', $header))) . '</th>';
+        foreach ($columns as $col) {
+            $col_name = $col['name'] ?? '';
+            // Allow custom label in future? For now ucfirst.
+            echo '<th>' . esc_html(ucfirst(str_replace('_', ' ', $col_name))) . '</th>';
         }
         echo '</tr></thead>';
+
+        // Body
         echo '<tbody>';
         foreach ($this->data as $item) {
             echo '<tr>';
-            foreach ($item as $key => $value) {
-                echo '<td>' . $this->format_value($value) . '</td>';
+
+            // Normalize Item
+            $normalized_item = [];
+            if (is_array($item)) {
+                foreach ($item as $k => $v) {
+                    $normalized_item[strtolower(trim($k))] = $v;
+                }
+            }
+
+            foreach ($columns as $col) {
+                $target_key = strtolower(trim($col['name'] ?? ''));
+                $val = $normalized_item[$target_key] ?? '';
+
+                // Class Injection for Styling
+                $cell_classes = 'nueva-table-cell';
+                if (isset($col['repeater_item_id'])) {
+                    $cell_classes .= ' elementor-repeater-item-' . esc_attr($col['repeater_item_id']);
+                }
+
+                echo '<td class="' . $cell_classes . '">';
+                // Use format_value but we need to respect types if in config
+                $type = $col['type'] ?? 'text';
+
+                // For table, we might simpler output than render_item_content, 
+                // but let's re-use format_value.
+                if ($type === 'html') {
+                    echo '<div class="nueva-html-content">' . $val . '</div>';
+                } else {
+                    echo '<span class="nueva-value">' . $this->format_value($val, $type) . '</span>';
+                }
+                echo '</td>';
             }
             echo '</tr>';
         }
@@ -398,13 +455,55 @@ class Nueva_CFRD_Renderer
 
     private function render_slider()
     {
-        echo '<div class="swiper nueva-cfrd-slider"><div class="swiper-wrapper">';
+        $settings = [
+            'autoplay' => ($this->atts['slider_autoplay'] === 'yes') ? (int) $this->atts['slider_speed'] : false,
+            'loop' => ($this->atts['slider_loop'] === 'yes'),
+            'speed' => (int) $this->atts['slider_speed'],
+            'navigation' => ($this->atts['slider_arrows'] === 'yes'),
+            'pagination' => ($this->atts['slider_dots'] === 'yes'),
+        ];
+
+        $json_settings = htmlspecialchars(json_encode($settings), ENT_QUOTES, 'UTF-8');
+
+        echo '<div class="swiper nueva-cfrd-slider" data-swiper-settings="' . $json_settings . '"><div class="swiper-wrapper">';
         foreach ($this->data as $item) {
             echo '<div class="swiper-slide">';
             $this->render_item_card($item);
             echo '</div>';
         }
-        echo '</div><div class="swiper-pagination"></div><div class="swiper-button-next"></div><div class="swiper-button-prev"></div></div>';
+        echo '</div>';
+
+        if ($this->atts['slider_dots'] === 'yes') {
+            echo '<div class="swiper-pagination"></div>';
+        }
+
+        if ($this->atts['slider_arrows'] === 'yes') {
+            $arrow_type = $this->atts['arrow_type'] ?? 'default';
+            $prev_html = '';
+            $next_html = '';
+
+            if ($arrow_type === 'icon') {
+                // We'll trust Elementor Icons Manager to have loaded dependencies or just use <i> tags
+                // Simplified: output the icon class
+                $prev_icon = $this->atts['arrow_icon_prev']['value'] ?? 'fas fa-chevron-left';
+                $next_icon = $this->atts['arrow_icon_next']['value'] ?? 'fas fa-chevron-right';
+                $prev_html = '<i class="' . esc_attr($prev_icon) . '"></i>';
+                $next_html = '<i class="' . esc_attr($next_icon) . '"></i>';
+            } elseif ($arrow_type === 'custom') {
+                $prev_url = $this->atts['arrow_image_prev']['url'] ?? '';
+                $next_url = $this->atts['arrow_image_next']['url'] ?? '';
+                if ($prev_url)
+                    $prev_html = '<img src="' . esc_url($prev_url) . '" alt="Prev">';
+                if ($next_url)
+                    $next_html = '<img src="' . esc_url($next_url) . '" alt="Next">';
+            }
+
+            // Output navigation
+            echo '<div class="swiper-button-prev nueva-arrow-' . $arrow_type . '">' . $prev_html . '</div>';
+            echo '<div class="swiper-button-next nueva-arrow-' . $arrow_type . '">' . $next_html . '</div>';
+        }
+
+        echo '</div>';
     }
 
     private function render_masonry()
