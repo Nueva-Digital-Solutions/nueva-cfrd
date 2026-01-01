@@ -41,8 +41,8 @@ jQuery(window).on('elementor:init', function () {
             if (config.css) {
                 // Prepend or replace? Let's append if empty, or replace?
                 // User wants presets, so we probably replace to show it working.
-                elementor.channels.editor.trigger('input:setting', 'nueva_custom_css', config.css);
-                model.setSetting('nueva_custom_css', config.css);
+                elementor.channels.editor.trigger('input:setting', 'n_css_code', config.css);
+                model.setSetting('n_css_code', config.css);
             }
 
             // Wrapper Controls

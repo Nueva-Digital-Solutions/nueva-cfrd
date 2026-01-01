@@ -32,17 +32,15 @@ class Nueva_CFRD_Widget_Custom extends Nueva_CFRD_Widget_Base
 
         // Custom Assets Section
         $this->start_controls_section(
-            'section_custom_assets_config',
+            'section_nueva_code',
             [
                 'label' => esc_html__('Custom Assets', 'nueva-cfrd'),
                 'tab' => \Elementor\Controls_Manager::TAB_CONTENT,
             ]
         );
 
-
-
         $this->add_control(
-            'nueva_custom_css',
+            'n_css_code',
             [
                 'label' => esc_html__('Custom CSS', 'nueva-cfrd'),
                 'type' => \Elementor\Controls_Manager::CODE,
@@ -53,7 +51,7 @@ class Nueva_CFRD_Widget_Custom extends Nueva_CFRD_Widget_Base
         );
 
         $this->add_control(
-            'css_libs',
+            'n_css_libs',
             [
                 'label' => esc_html__('External CSS Libraries (URLs)', 'nueva-cfrd'),
                 'type' => \Elementor\Controls_Manager::REPEATER,
@@ -70,7 +68,7 @@ class Nueva_CFRD_Widget_Custom extends Nueva_CFRD_Widget_Base
         );
 
         $this->add_control(
-            'external_libs',
+            'n_js_libs',
             [
                 'label' => esc_html__('External JS Libraries (URLs)', 'nueva-cfrd'),
                 'type' => \Elementor\Controls_Manager::REPEATER,
@@ -87,7 +85,7 @@ class Nueva_CFRD_Widget_Custom extends Nueva_CFRD_Widget_Base
         );
 
         $this->add_control(
-            'nueva_custom_js',
+            'n_js_code',
             [
                 'label' => esc_html__('Custom JS', 'nueva-cfrd'),
                 'type' => \Elementor\Controls_Manager::CODE,
@@ -238,8 +236,8 @@ class Nueva_CFRD_Widget_Custom extends Nueva_CFRD_Widget_Base
         $settings = $this->get_settings_for_display();
 
         // 1. Output External CSS Libs
-        if (!empty($settings['css_libs'])) {
-            foreach ($settings['css_libs'] as $lib) {
+        if (!empty($settings['n_css_libs'])) {
+            foreach ($settings['n_css_libs'] as $lib) {
                 if (!empty($lib['url'])) {
                     echo '<link rel="stylesheet" href="' . esc_url($lib['url']) . '">';
                 }
@@ -247,16 +245,16 @@ class Nueva_CFRD_Widget_Custom extends Nueva_CFRD_Widget_Base
         }
 
         // Note: Preset Logic removed in favor of JS injection in Editor.
-        // We rely on what is saved in 'custom_template' and 'nueva_custom_css'.
+        // We rely on what is saved in 'custom_template' and 'n_css_code'.
 
         // 2. Output Custom CSS
-        if (!empty($settings['nueva_custom_css'])) {
-            echo '<style>' . $settings['nueva_custom_css'] . '</style>';
+        if (!empty($settings['n_css_code'])) {
+            echo '<style>' . $settings['n_css_code'] . '</style>';
         }
 
         // 3. Output External JS Libs
-        if (!empty($settings['external_libs'])) {
-            foreach ($settings['external_libs'] as $lib) {
+        if (!empty($settings['n_js_libs'])) {
+            foreach ($settings['n_js_libs'] as $lib) {
                 if (!empty($lib['url'])) {
                     echo '<script src="' . esc_url($lib['url']) . '"></script>';
                 }
@@ -316,8 +314,8 @@ class Nueva_CFRD_Widget_Custom extends Nueva_CFRD_Widget_Base
         echo $renderer->render_custom_loop($settings['custom_template'] ?? '', $wrapper_args);
 
         // 5. Output Custom JS
-        if (!empty($settings['nueva_custom_js'])) {
-            echo '<script>' . $settings['nueva_custom_js'] . '</script>';
+        if (!empty($settings['n_js_code'])) {
+            echo '<script>' . $settings['n_js_code'] . '</script>';
         }
     }
 }
