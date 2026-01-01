@@ -22,19 +22,28 @@ class Nueva_CFRD_Templates
             'key_button' => 'Read More',
         ]);
 
+        $defaults = [
+            'html' => '',
+            'css' => '',
+            'wrapper_class' => '',
+            'change_wrapper_tag' => '',
+            'pre_wrapper_html' => '',
+            'post_wrapper_html' => '',
+        ];
+
         switch ($type) {
             case 'grid':
-                return self::get_grid_config($keys);
+                return array_merge($defaults, self::get_grid_config($keys));
             case 'list':
-                return self::get_list_config($keys);
+                return array_merge($defaults, self::get_list_config($keys));
             case 'slider':
-                return self::get_slider_config($keys);
+                return array_merge($defaults, self::get_slider_config($keys));
             case 'accordion':
-                return self::get_accordion_config($keys);
+                return array_merge($defaults, self::get_accordion_config($keys));
             case 'table':
-                return self::get_table_config($keys);
+                return array_merge($defaults, self::get_table_config($keys));
             default:
-                return [];
+                return $defaults;
         }
     }
 
