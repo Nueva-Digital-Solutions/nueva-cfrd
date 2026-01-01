@@ -154,14 +154,27 @@ class Nueva_CFRD_Renderer
         return ob_get_clean();
     }
 
-    public function render_custom_loop($template)
+    public function render_custom_loop($template, $wrapper_args = [])
     {
         ob_start();
         $this->fetch_data();
-        $this->generate_styles(); // For generic styles if any
+        $this->generate_styles();
 
-        // Wrapper
-        echo '<div class="nueva-cfrd-custom-loop nueva-id-' . esc_attr($this->config_id) . '">';
+        // Extract Wrapper Config
+        $tag = $wrapper_args['tag'] ?? 'div';
+        $classes = 'nueva-cfrd-custom-loop nueva-id-' . esc_attr($this->config_id) . ' ' . ($wrapper_args['class'] ?? '');
+        $pre_html = $wrapper_args['pre_html'] ?? '';
+        $post_html = $wrapper_args['post_html'] ?? '';
+
+        // Slider Logic: Swiper needs a wrapper inside the container
+        $is_slider = strpos($classes, 'swiper') !== false;
+
+        echo $pre_html;
+        echo '<' . $tag . ' class="' . esc_attr($classes) . '" ' . ($wrapper_args['attrs'] ?? '') . '>';
+
+        if ($is_slider) {
+            echo '<div class="swiper-wrapper">';
+        }
 
         foreach ($this->data as $item) {
             if (!is_array($item))

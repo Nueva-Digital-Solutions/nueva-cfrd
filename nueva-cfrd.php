@@ -48,6 +48,7 @@ add_action('plugins_loaded', 'nueva_cfrd_init');
 function nueva_register_elementor_widgets($widgets_manager)
 {
     require_once NUEVA_CFRD_PATH . 'includes/widgets/class-nueva-cfrd-widget-base.php';
+    require_once NUEVA_CFRD_PATH . 'includes/class-nueva-cfrd-templates.php'; // Helper
     require_once NUEVA_CFRD_PATH . 'includes/widgets/class-nueva-cfrd-widget-grid.php';
     require_once NUEVA_CFRD_PATH . 'includes/widgets/class-nueva-cfrd-widget-list.php';
     require_once NUEVA_CFRD_PATH . 'includes/widgets/class-nueva-cfrd-widget-table.php';

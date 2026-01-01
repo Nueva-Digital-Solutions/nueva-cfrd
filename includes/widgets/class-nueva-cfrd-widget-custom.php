@@ -59,7 +59,6 @@ class Nueva_CFRD_Widget_Custom extends Nueva_CFRD_Widget_Base
             ]
         );
 
-        /*
         $this->add_control(
             'css_libs',
             [
@@ -93,7 +92,6 @@ class Nueva_CFRD_Widget_Custom extends Nueva_CFRD_Widget_Base
                 'title_field' => '{{{ url }}}',
             ]
         );
-        */
 
         $this->add_control(
             'nueva_custom_js',
@@ -108,7 +106,28 @@ class Nueva_CFRD_Widget_Custom extends Nueva_CFRD_Widget_Base
         $this->end_controls_section();
 
         // Custom Loop Template (Hook)
-        $this->register_content_controls();
+        // Prepare Wrapper Args from settings/attributes
+        $wrapper_args = [
+            'tag' => $settings['wrapper_tag'] ?? 'div',
+            'pre_html' => $settings['pre_wrapper_html'] ?? '',
+            'post_html' => $settings['post_wrapper_html'] ?? '',
+            'class' => $this->get_render_attribute_string('wrapper', 'class'), // Getting just value not full string? No, Elementor uses get_render_attribute_string returning 'class="..."'
+            // We need just the value string for our renderer manual build, OR parse it.
+            // Let's manually access attributes array if possible or use a custom method.
+            // Simplified:
+            'class' => isset($settings['preset_type']) && $settings['preset_type'] === 'slider' ? 'swiper nueva-cfrd-slider' : '',
+            // Ideally we used $this->add_render_attribute above, but getting raw val is tricky in Elementor 
+            // without outputting the whole attribute string.
+        ];
+
+        // Quick Fix for Table
+        if (isset($settings['wrapper_tag'])) {
+            $wrapper_args['tag'] = $settings['wrapper_tag'];
+            $wrapper_args['pre_html'] = $settings['pre_wrapper_html'];
+            $wrapper_args['post_html'] = $settings['post_wrapper_html'];
+        }
+
+        echo $renderer->render_custom_loop($settings['custom_template'], $wrapper_args);
     }
 
     protected function register_content_controls()
@@ -122,12 +141,90 @@ class Nueva_CFRD_Widget_Custom extends Nueva_CFRD_Widget_Base
         );
 
         $this->add_control(
+            'template_source',
+            [
+                'label' => esc_html__('Template Source', 'nueva-cfrd'),
+                'type' => \Elementor\Controls_Manager::SELECT,
+                'default' => 'custom',
+                'options' => [
+                    'custom' => esc_html__('Custom Code', 'nueva-cfrd'),
+                    'preset' => esc_html__('Preset Layout', 'nueva-cfrd'),
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'preset_type',
+            [
+                'label' => esc_html__('Preset Type', 'nueva-cfrd'),
+                'type' => \Elementor\Controls_Manager::SELECT,
+                'default' => 'grid',
+                'options' => [
+                    'grid' => 'Card Grid',
+                    'list' => 'List View',
+                    'slider' => 'Slider / Carousel',
+                    'accordion' => 'Accordion',
+                    'table' => 'Simple Table',
+                ],
+                'condition' => ['template_source' => 'preset'],
+            ]
+        );
+
+        // --- Field Mapping Controls ---
+        $this->add_control(
+            'key_title',
+            [
+                'label' => 'Title Field Key',
+                'type' => \Elementor\Controls_Manager::TEXT,
+                'default' => 'title',
+                'condition' => ['template_source' => 'preset'],
+            ]
+        );
+        $this->add_control(
+            'key_desc',
+            [
+                'label' => 'Description / Content Key',
+                'type' => \Elementor\Controls_Manager::TEXT,
+                'default' => 'description',
+                'condition' => ['template_source' => 'preset'],
+            ]
+        );
+        $this->add_control(
+            'key_image',
+            [
+                'label' => 'Image Key (URL)',
+                'type' => \Elementor\Controls_Manager::TEXT,
+                'default' => 'image',
+                'condition' => ['template_source' => 'preset'],
+            ]
+        );
+        $this->add_control(
+            'key_link',
+            [
+                'label' => 'Link Key (URL)',
+                'type' => \Elementor\Controls_Manager::TEXT,
+                'default' => 'link',
+                'condition' => ['template_source' => 'preset'],
+            ]
+        );
+        $this->add_control(
+            'key_button',
+            [
+                'label' => 'Button Text',
+                'type' => \Elementor\Controls_Manager::TEXT,
+                'default' => 'Read More',
+                'condition' => ['template_source' => 'preset'],
+            ]
+        );
+
+        $this->add_control(
             'custom_template',
             [
                 'label' => esc_html__('HTML Template', 'nueva-cfrd'),
                 'type' => \Elementor\Controls_Manager::CODE,
                 'language' => 'html',
                 'rows' => 20,
+                'condition' => ['template_source' => 'custom'], // Hide if Preset
                 'placeholder' => '<div class="my-item">
     <h3>{{field_key_1}}</h3>
     <p>{{field_key_2}}</p>
@@ -151,6 +248,37 @@ class Nueva_CFRD_Widget_Custom extends Nueva_CFRD_Widget_Base
             }
         }
 
+        // Pre-Process Presets
+        if (isset($settings['template_source']) && $settings['template_source'] === 'preset') {
+            if (class_exists('Nueva_CFRD_Templates')) {
+                $keys = [
+                    'key_title' => $settings['key_title'] ?? 'title',
+                    'key_desc' => $settings['key_desc'] ?? 'description',
+                    'key_image' => $settings['key_image'] ?? 'image',
+                    'key_link' => $settings['key_link'] ?? 'link',
+                    'key_button' => $settings['key_button'] ?? 'Read More',
+                ];
+
+                $config = Nueva_CFRD_Templates::get_config($settings['preset_type'], $keys);
+
+                if (!empty($config['html'])) {
+                    $settings['custom_template'] = $config['html'];
+                }
+                if (!empty($config['css'])) {
+                    $settings['nueva_custom_css'] .= "\n" . $config['css'];
+                }
+                if (!empty($config['wrapper_class'])) {
+                    $this->add_render_attribute('wrapper', 'class', $config['wrapper_class']);
+                }
+                if (!empty($config['change_wrapper_tag'])) {
+                    $settings['wrapper_tag'] = $config['change_wrapper_tag'];
+                    $settings['pre_wrapper_html'] = $config['pre_wrapper_html'] ?? '';
+                    $settings['post_wrapper_html'] = $config['post_wrapper_html'] ?? '';
+                }
+                $this->add_render_attribute('wrapper', 'data-preset', $settings['preset_type']);
+            }
+        }
+
         // 2. Output Custom CSS
         if (!empty($settings['nueva_custom_css'])) {
             echo '<style>' . $settings['nueva_custom_css'] . '</style>';
@@ -165,8 +293,25 @@ class Nueva_CFRD_Widget_Custom extends Nueva_CFRD_Widget_Base
             }
         }
 
-        // 4. Call Parent Render (Main Loop)
-        parent::render();
+        // 4. Render Main Loop
+        $renderer = new \Nueva_CFRD_Renderer(
+            $settings['repeater_field_name'],
+            $settings,
+            $this->get_id()
+        );
+
+        $wrapper_args = [
+            'tag' => $settings['wrapper_tag'] ?? 'div',
+            'pre_html' => $settings['pre_wrapper_html'] ?? '',
+            'post_html' => $settings['post_wrapper_html'] ?? '',
+            'class' => $this->get_render_attribute_string('wrapper'), // Get the full class="... data-preset..." string handled by Elementor? No, get_render_attribute_string returns the attribute string.
+            // But we are passing it to 'render_custom_loop' which manually builds the tag.
+            // We need to pass the attributes string to be output INSIDE the tag.
+            'attrs' => $this->get_render_attribute_string('wrapper'),
+        ];
+
+        // Ensure we pass the template to the renderer
+        echo $renderer->render_custom_loop($settings['custom_template'] ?? '', $wrapper_args);
 
         // 5. Output Custom JS
         if (!empty($settings['nueva_custom_js'])) {
