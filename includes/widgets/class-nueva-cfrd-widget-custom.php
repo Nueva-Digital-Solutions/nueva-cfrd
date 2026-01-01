@@ -32,10 +32,10 @@ class Nueva_CFRD_Widget_Custom extends Nueva_CFRD_Widget_Base
 
         // Custom Assets Section
         $this->start_controls_section(
-            'section_custom_assets_advanced',
+            'section_custom_assets_config',
             [
                 'label' => esc_html__('Custom Assets', 'nueva-cfrd'),
-                'tab' => \Elementor\Controls_Manager::TAB_ADVANCED,
+                'tab' => \Elementor\Controls_Manager::TAB_CONTENT,
             ]
         );
 
@@ -44,10 +44,11 @@ class Nueva_CFRD_Widget_Custom extends Nueva_CFRD_Widget_Base
             [
                 'label' => esc_html__('Debug Display', 'nueva-cfrd'),
                 'type' => \Elementor\Controls_Manager::TEXT,
-                'default' => 'If you see this, the section works',
+                'default' => 'If you see this, the section works. Then we enable others.',
             ]
         );
 
+        /*
         $this->add_control(
             'nueva_custom_css',
             [
@@ -102,6 +103,7 @@ class Nueva_CFRD_Widget_Custom extends Nueva_CFRD_Widget_Base
                 'description' => 'Executes after widget load.',
             ]
         );
+        */
 
         $this->end_controls_section();
 
