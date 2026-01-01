@@ -294,19 +294,38 @@ class Nueva_CFRD_Widget_Custom extends Nueva_CFRD_Widget_Base
         }
 
         // 4. Render Main Loop
-        $renderer = new \Nueva_CFRD_Renderer(
-            $settings['repeater_field_name'],
-            $settings,
-            $this->get_id()
-        );
+
+        // Determine Post ID (Copied from Widget_Base)
+        $post_id = get_the_ID();
+        if (isset($settings['post_id_source'])) {
+            if ('custom' === $settings['post_id_source']) {
+                $post_id = $settings['custom_post_id'];
+            } elseif ('option' === $settings['post_id_source']) {
+                $post_id = 'option';
+            } elseif ('taxonomy' === $settings['post_id_source']) {
+                $obj = get_queried_object();
+                if ($obj instanceof \WP_Term) {
+                    $post_id = $obj->taxonomy . '_' . $obj->term_id;
+                }
+            }
+        }
+
+        $renderer_args = [
+            'id' => '',
+            'post_id' => $post_id,
+            'field' => $settings['repeater_field_name'],
+            'layout' => 'custom',
+            'class' => 'nueva-elementor-widget',
+            'sub_fields' => [], // Custom loop handles its own sub-fields via templating
+        ];
+
+        $renderer = new \Nueva_CFRD_Renderer($renderer_args);
 
         $wrapper_args = [
             'tag' => $settings['wrapper_tag'] ?? 'div',
             'pre_html' => $settings['pre_wrapper_html'] ?? '',
             'post_html' => $settings['post_wrapper_html'] ?? '',
-            'class' => $this->get_render_attribute_string('wrapper'), // Get the full class="... data-preset..." string handled by Elementor? No, get_render_attribute_string returns the attribute string.
-            // But we are passing it to 'render_custom_loop' which manually builds the tag.
-            // We need to pass the attributes string to be output INSIDE the tag.
+            'class' => $this->get_render_attribute_string('wrapper'),
             'attrs' => $this->get_render_attribute_string('wrapper'),
         ];
 
