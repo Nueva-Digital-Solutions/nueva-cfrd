@@ -692,7 +692,11 @@ class Nueva_CFRD_Renderer
                 if (array_key_exists($target_key, $normalized_item)) {
                     $value = $normalized_item[$target_key];
 
-                    echo '<div class="nueva-field nueva-field-' . esc_attr($target_key) . '">';
+                    $wrapper_classes = 'nueva-field nueva-field-' . esc_attr($target_key);
+                    if (isset($field_config['repeater_item_id'])) {
+                        $wrapper_classes .= ' elementor-repeater-item-' . esc_attr($field_config['repeater_item_id']);
+                    }
+                    echo '<div class="' . $wrapper_classes . '">';
 
                     $style_attr = $custom_style ? ' style="' . esc_attr($custom_style) . '"' : '';
 

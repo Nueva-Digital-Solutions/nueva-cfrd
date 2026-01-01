@@ -241,6 +241,7 @@ abstract class Nueva_CFRD_Widget_Base extends \Elementor\Widget_Base
                 'selectors' => [
                     '{{WRAPPER}} .nueva-card-builder' => 'background-color: {{VALUE}}',
                     '{{WRAPPER}} .nueva-cfrd-item' => 'background-color: {{VALUE}}',
+                    '{{WRAPPER}} .nueva-card' => 'background-color: {{VALUE}}',
                 ],
             ]
         );
@@ -249,7 +250,7 @@ abstract class Nueva_CFRD_Widget_Base extends \Elementor\Widget_Base
             \Elementor\Group_Control_Border::get_type(),
             [
                 'name' => 'item_border',
-                'selector' => '{{WRAPPER}} .nueva-card-builder, {{WRAPPER}} .nueva-cfrd-item',
+                'selector' => '{{WRAPPER}} .nueva-card-builder, {{WRAPPER}} .nueva-cfrd-item, {{WRAPPER}} .nueva-card',
             ]
         );
 
@@ -262,6 +263,7 @@ abstract class Nueva_CFRD_Widget_Base extends \Elementor\Widget_Base
                 'selectors' => [
                     '{{WRAPPER}} .nueva-card-builder' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
                     '{{WRAPPER}} .nueva-cfrd-item' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                    '{{WRAPPER}} .nueva-card' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
                 ],
             ]
         );
@@ -270,7 +272,7 @@ abstract class Nueva_CFRD_Widget_Base extends \Elementor\Widget_Base
             \Elementor\Group_Control_Box_Shadow::get_type(),
             [
                 'name' => 'item_box_shadow',
-                'selector' => '{{WRAPPER}} .nueva-card-builder, {{WRAPPER}} .nueva-cfrd-item',
+                'selector' => '{{WRAPPER}} .nueva-card-builder, {{WRAPPER}} .nueva-cfrd-item, {{WRAPPER}} .nueva-card',
             ]
         );
 
@@ -283,6 +285,7 @@ abstract class Nueva_CFRD_Widget_Base extends \Elementor\Widget_Base
                 'selectors' => [
                     '{{WRAPPER}} .nueva-card-builder' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
                     '{{WRAPPER}} .nueva-cfrd-item' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                    '{{WRAPPER}} .nueva-card' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
                 ],
             ]
         );
@@ -369,6 +372,7 @@ abstract class Nueva_CFRD_Widget_Base extends \Elementor\Widget_Base
                 // Extract Config for Renderer
                 $config = [
                     'name' => trim($field['name']),
+                    'repeater_item_id' => $field['_id'], // Pass Elementor ID for styling
                     'type' => $field['type'],
                     'heading_tag' => $field['heading_tag'] ?? 'h3',
                     'video_ratio' => $field['video_ratio'] ?? '169',
