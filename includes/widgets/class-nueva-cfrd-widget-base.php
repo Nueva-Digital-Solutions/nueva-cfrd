@@ -140,6 +140,29 @@ abstract class Nueva_CFRD_Widget_Base extends \Elementor\Widget_Base
             ]
         );
 
+        $repeater->add_control(
+            'field_icon',
+            [
+                'label' => esc_html__('Icon', 'nueva-cfrd'),
+                'type' => \Elementor\Controls_Manager::ICONS,
+                'default' => [
+                    'value' => '',
+                    'library' => '',
+                ],
+            ]
+        );
+
+        $repeater->add_control(
+            'field_image',
+            [
+                'label' => esc_html__('Custom Image/Icon', 'nueva-cfrd'),
+                'type' => \Elementor\Controls_Manager::MEDIA,
+                'condition' => ['field_icon[value]!' => ''], // Logic: Show if Icon is NOT selected? Or allow both? 
+                // User said "Icon / Image option". Typically allow one or the other.
+                // Let's rely on user not filling both or prioritized in render.
+            ]
+        );
+
         // Image Controls
         $repeater->add_control(
             'image_size',
@@ -195,7 +218,9 @@ abstract class Nueva_CFRD_Widget_Base extends \Elementor\Widget_Base
             \Elementor\Group_Control_Typography::get_type(),
             [
                 'name' => 'item_typography',
-                'selector' => '{{WRAPPER}} {{CURRENT_ITEM}} .nueva-value',
+                // Updated Selector: Target BOTH the .nueva-value AND tags directly just in case (e.g. headings)
+                // Also ensure we target the repeater item ID context
+                'selector' => '{{WRAPPER}} {{CURRENT_ITEM}} .nueva-value, {{WRAPPER}} {{CURRENT_ITEM}}.nueva-field .nueva-value, {{WRAPPER}} {{CURRENT_ITEM}} .nueva-value a, {{WRAPPER}} {{CURRENT_ITEM}} .nueva-html-content',
                 'condition' => ['type' => ['text', 'paragraph', 'heading', 'link']],
             ]
         );
@@ -252,7 +277,7 @@ abstract class Nueva_CFRD_Widget_Base extends \Elementor\Widget_Base
             \Elementor\Group_Control_Border::get_type(),
             [
                 'name' => 'item_border',
-                'selector' => '{{WRAPPER}} .nueva-card-builder, {{WRAPPER}} .nueva-cfrd-item, {{WRAPPER}} .nueva-card, {{WRAPPER}} .nueva-accordion-item, {{WRAPPER}} .nueva-cfrd-table tbody tr',
+                'selector' => '{{WRAPPER}} .nueva-card-builder, {{WRAPPER}} .nueva-cfrd-item, {{WRAPPER}} .nueva-card, {{WRAPPER}} .nueva-accordion-item, {{WRAPPER}} .nueva-cfrd-table, {{WRAPPER}} .nueva-cfrd-table th, {{WRAPPER}} .nueva-cfrd-table td',
             ]
         );
 
@@ -267,8 +292,6 @@ abstract class Nueva_CFRD_Widget_Base extends \Elementor\Widget_Base
                     '{{WRAPPER}} .nueva-cfrd-item' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
                     '{{WRAPPER}} .nueva-card' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
                     '{{WRAPPER}} .nueva-accordion-item' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
-                    // Table rows usually don't support border-radius easily without specific display types, but we'll include it.
-                    '{{WRAPPER}} .nueva-cfrd-table tbody tr' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
                 ],
             ]
         );
@@ -355,6 +378,8 @@ abstract class Nueva_CFRD_Widget_Base extends \Elementor\Widget_Base
                     'type' => $field['type'],
                     'heading_tag' => $field['heading_tag'] ?? 'h3',
                     'video_ratio' => $field['video_ratio'] ?? '169',
+                    'field_icon' => $field['field_icon'] ?? [],
+                    'field_image' => $field['field_image'] ?? [],
                     // Image/Text Styling is handled via Elementor Selectors CSS, 
                     // so we don't strictly need to pass style strings manually anymore,
                     // BUT Renderer needs to know the TAG to render.

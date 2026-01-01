@@ -87,5 +87,41 @@ class Nueva_CFRD_Widget_Accordion extends Nueva_CFRD_Widget_Base
                 ],
             ]
         );
+
+        // Grid / Layout Controls
+        $this->add_responsive_control(
+            'accordion_columns',
+            [
+                'label' => esc_html__('Columns', 'nueva-cfrd'),
+                'type' => \Elementor\Controls_Manager::NUMBER,
+                'min' => 1,
+                'max' => 6,
+                'devices' => ['desktop', 'tablet', 'mobile'],
+                'desktop_default' => 1,
+                'tablet_default' => 1,
+                'mobile_default' => 1,
+                'selectors' => [
+                    '{{WRAPPER}} .nueva-cfrd-accordion' => 'display: grid; grid-template-columns: repeat({{VALUE}}, 1fr);',
+                ],
+            ]
+        );
+
+        $this->add_responsive_control(
+            'accordion_gap',
+            [
+                'label' => esc_html__('Gap', 'nueva-cfrd'),
+                'type' => \Elementor\Controls_Manager::SLIDER,
+                'size_units' => ['px'],
+                'range' => [
+                    'px' => [
+                        'min' => 0,
+                        'max' => 100,
+                    ],
+                ],
+                'selectors' => [
+                    '{{WRAPPER}} .nueva-cfrd-accordion' => 'gap: {{SIZE}}{{UNIT}};',
+                ],
+            ]
+        );
     }
 }

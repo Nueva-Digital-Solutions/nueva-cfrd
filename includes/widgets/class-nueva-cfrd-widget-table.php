@@ -49,5 +49,23 @@ class Nueva_CFRD_Widget_Table extends Nueva_CFRD_Widget_Base
                 ],
             ]
         );
+
+        $this->add_responsive_control(
+            'table_border_spacing',
+            [
+                'label' => esc_html__('Row/Column Gap', 'nueva-cfrd'),
+                'type' => \Elementor\Controls_Manager::SLIDER,
+                'size_units' => ['px'],
+                'range' => [
+                    'px' => [
+                        'min' => 0,
+                        'max' => 100,
+                    ],
+                ],
+                'selectors' => [
+                    '{{WRAPPER}} .nueva-cfrd-table' => 'border-collapse: separate; border-spacing: {{SIZE}}{{UNIT}};',
+                ],
+            ]
+        );
     }
 }

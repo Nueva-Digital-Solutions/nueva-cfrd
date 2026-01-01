@@ -799,6 +799,16 @@ class Nueva_CFRD_Renderer
 
                     $style_attr = $custom_style ? ' style="' . esc_attr($custom_style) . '"' : '';
 
+                    // Icon/Image Output
+                    $icon_html = '';
+                    if (!empty($field_config['field_icon']) && !empty($field_config['field_icon']['value'])) {
+                        // Elementor Icons Manager or simple class
+                        // We will just use class for simplicity unless we need full SVG
+                        $icon_html = '<i class="' . esc_attr($field_config['field_icon']['value']) . ' nueva-sub-icon"></i> ';
+                    } elseif (!empty($field_config['field_image']) && !empty($field_config['field_image']['url'])) {
+                        $icon_html = '<img src="' . esc_url($field_config['field_image']['url']) . '" class="nueva-sub-image" alt=""> ';
+                    }
+
                     // Determine Wrapper Tag based on Type
                     $tag = 'span';
                     if ($type === 'paragraph')
