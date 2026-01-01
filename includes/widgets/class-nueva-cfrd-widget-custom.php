@@ -48,7 +48,6 @@ class Nueva_CFRD_Widget_Custom extends Nueva_CFRD_Widget_Base
             ]
         );
 
-        /*
         $this->add_control(
             'nueva_custom_css',
             [
@@ -60,6 +59,7 @@ class Nueva_CFRD_Widget_Custom extends Nueva_CFRD_Widget_Base
             ]
         );
 
+        /*
         $this->add_control(
             'css_libs',
             [
@@ -93,6 +93,7 @@ class Nueva_CFRD_Widget_Custom extends Nueva_CFRD_Widget_Base
                 'title_field' => '{{{ url }}}',
             ]
         );
+        */
 
         $this->add_control(
             'nueva_custom_js',
@@ -103,7 +104,6 @@ class Nueva_CFRD_Widget_Custom extends Nueva_CFRD_Widget_Base
                 'description' => 'Executes after widget load.',
             ]
         );
-        */
 
         $this->end_controls_section();
 
