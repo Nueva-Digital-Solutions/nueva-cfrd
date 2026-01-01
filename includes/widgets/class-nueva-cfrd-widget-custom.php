@@ -40,6 +40,15 @@ class Nueva_CFRD_Widget_Custom extends Nueva_CFRD_Widget_Base
         );
 
         $this->add_control(
+            'debug_test',
+            [
+                'label' => esc_html__('Debug Display', 'nueva-cfrd'),
+                'type' => \Elementor\Controls_Manager::TEXT,
+                'default' => 'If you see this, the section works',
+            ]
+        );
+
+        $this->add_control(
             'nueva_custom_css',
             [
                 'label' => esc_html__('Custom CSS', 'nueva-cfrd'),
