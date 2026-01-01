@@ -40,7 +40,7 @@ class Nueva_CFRD_Widget_Custom extends Nueva_CFRD_Widget_Base
         );
 
         $this->add_control(
-            'custom_css',
+            'nueva_custom_css',
             [
                 'label' => esc_html__('Custom CSS', 'nueva-cfrd'),
                 'type' => \Elementor\Controls_Manager::CODE,
@@ -85,7 +85,7 @@ class Nueva_CFRD_Widget_Custom extends Nueva_CFRD_Widget_Base
         );
 
         $this->add_control(
-            'custom_js',
+            'nueva_custom_js',
             [
                 'label' => esc_html__('Custom JS', 'nueva-cfrd'),
                 'type' => \Elementor\Controls_Manager::CODE,
@@ -141,8 +141,8 @@ class Nueva_CFRD_Widget_Custom extends Nueva_CFRD_Widget_Base
         }
 
         // 2. Output Custom CSS
-        if (!empty($settings['custom_css'])) {
-            echo '<style>' . $settings['custom_css'] . '</style>';
+        if (!empty($settings['nueva_custom_css'])) {
+            echo '<style>' . $settings['nueva_custom_css'] . '</style>';
         }
 
         // 3. Output External JS Libs
@@ -158,8 +158,8 @@ class Nueva_CFRD_Widget_Custom extends Nueva_CFRD_Widget_Base
         parent::render();
 
         // 5. Output Custom JS
-        if (!empty($settings['custom_js'])) {
-            echo '<script>' . $settings['custom_js'] . '</script>';
+        if (!empty($settings['nueva_custom_js'])) {
+            echo '<script>' . $settings['nueva_custom_js'] . '</script>';
         }
     }
 }
