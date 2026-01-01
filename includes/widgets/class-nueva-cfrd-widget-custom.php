@@ -32,10 +32,10 @@ class Nueva_CFRD_Widget_Custom extends Nueva_CFRD_Widget_Base
 
         // Custom Assets Section
         $this->start_controls_section(
-            'section_custom_assets_config',
+            'section_custom_assets_advanced',
             [
                 'label' => esc_html__('Custom Assets', 'nueva-cfrd'),
-                'tab' => \Elementor\Controls_Manager::TAB_CONTENT,
+                'tab' => \Elementor\Controls_Manager::TAB_ADVANCED,
             ]
         );
 
