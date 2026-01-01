@@ -45,22 +45,51 @@ add_action('plugins_loaded', 'nueva_cfrd_init');
 
 // Register Elementor Widget
 // Register Elementor Widgets
+// Register Elementor Widgets
+// Include Helper Class
+require_once NUEVA_CFRD_PATH . 'includes/class-nueva-cfrd-templates.php';
+
+// Register Elementor Widgets
 function nueva_register_elementor_widgets($widgets_manager)
 {
     require_once NUEVA_CFRD_PATH . 'includes/widgets/class-nueva-cfrd-widget-base.php';
-    require_once NUEVA_CFRD_PATH . 'includes/class-nueva-cfrd-templates.php'; // Helper
-    require_once NUEVA_CFRD_PATH . 'includes/widgets/class-nueva-cfrd-widget-grid.php';
-    require_once NUEVA_CFRD_PATH . 'includes/widgets/class-nueva-cfrd-widget-list.php';
-    require_once NUEVA_CFRD_PATH . 'includes/widgets/class-nueva-cfrd-widget-table.php';
-    require_once NUEVA_CFRD_PATH . 'includes/widgets/class-nueva-cfrd-widget-accordion.php';
-    require_once NUEVA_CFRD_PATH . 'includes/widgets/class-nueva-cfrd-widget-slider.php';
     require_once NUEVA_CFRD_PATH . 'includes/widgets/class-nueva-cfrd-widget-custom.php';
 
-    $widgets_manager->register(new \Nueva_CFRD_Widget_Grid());
-    $widgets_manager->register(new \Nueva_CFRD_Widget_List());
-    $widgets_manager->register(new \Nueva_CFRD_Widget_Table());
-    $widgets_manager->register(new \Nueva_CFRD_Widget_Accordion());
-    $widgets_manager->register(new \Nueva_CFRD_Widget_Slider());
     $widgets_manager->register(new \Nueva_CFRD_Widget_Custom());
 }
 add_action('elementor/widgets/register', 'nueva_register_elementor_widgets');
+
+// Enqueue Editor Scripts
+function nueva_cfrd_enqueue_editor_scripts()
+{
+    wp_enqueue_script(
+        'nueva-cfrd-editor',
+        NUEVA_CFRD_URL . 'assets/js/admin-editor.js',
+        ['jquery', 'elementor-editor'], // Dep: elementor-editor usually ensures jquery
+        NUEVA_CFRD_VERSION,
+        true
+    );
+
+    // Get Templates for JS
+    if (class_exists('Nueva_CFRD_Templates')) {
+        // We pass "placeholder" keys to get the raw pattern back
+        $placeholders = [
+            'key_title' => '{{key_title}}',
+            'key_desc' => '{{key_desc}}',
+            'key_image' => '{{key_image}}',
+            'key_link' => '{{key_link}}',
+            'key_button' => '{{key_button}}',
+        ];
+
+        $presets = [
+            'grid' => Nueva_CFRD_Templates::get_config('grid', $placeholders),
+            'list' => Nueva_CFRD_Templates::get_config('list', $placeholders),
+            'slider' => Nueva_CFRD_Templates::get_config('slider', $placeholders),
+            'accordion' => Nueva_CFRD_Templates::get_config('accordion', $placeholders),
+            'table' => Nueva_CFRD_Templates::get_config('table', $placeholders),
+        ];
+
+        wp_localize_script('nueva-cfrd-editor', 'nuevaTemplates', $presets);
+    }
+}
+add_action('elementor/editor/after_enqueue_scripts', 'nueva_cfrd_enqueue_editor_scripts');

@@ -189,6 +189,32 @@ class Nueva_CFRD_Widget_Custom extends Nueva_CFRD_Widget_Base
             ]
         );
 
+        // Wrapper Controls (Exposed for Presets)
+        $this->add_control(
+            'wrapper_tag',
+            [
+                'label' => esc_html__('Wrapper HTML Tag', 'nueva-cfrd'),
+                'type' => \Elementor\Controls_Manager::SELECT,
+                'default' => 'div',
+                'options' => [
+                    'div' => 'div',
+                    'ul' => 'ul',
+                    'ol' => 'ol',
+                    'table' => 'table',
+                    'tbody' => 'tbody',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'wrapper_custom_class',
+            [
+                'label' => esc_html__('Wrapper Class', 'nueva-cfrd'),
+                'type' => \Elementor\Controls_Manager::TEXT,
+                'description' => 'Classes added to the main container.',
+            ]
+        );
+
         $this->add_control(
             'custom_template',
             [
@@ -196,7 +222,7 @@ class Nueva_CFRD_Widget_Custom extends Nueva_CFRD_Widget_Base
                 'type' => \Elementor\Controls_Manager::CODE,
                 'language' => 'html',
                 'rows' => 20,
-                'condition' => ['template_source' => 'custom'], // Hide if Preset
+                // 'condition' => ['template_source' => 'custom'], // Always visible for editing
                 'placeholder' => '<div class="my-item">
     <h3>{{field_key_1}}</h3>
     <p>{{field_key_2}}</p>
@@ -220,36 +246,8 @@ class Nueva_CFRD_Widget_Custom extends Nueva_CFRD_Widget_Base
             }
         }
 
-        // Pre-Process Presets
-        if (isset($settings['template_source']) && $settings['template_source'] === 'preset') {
-            if (class_exists('Nueva_CFRD_Templates')) {
-                $keys = [
-                    'key_title' => $settings['key_title'] ?? 'title',
-                    'key_desc' => $settings['key_desc'] ?? 'description',
-                    'key_image' => $settings['key_image'] ?? 'image',
-                    'key_link' => $settings['key_link'] ?? 'link',
-                    'key_button' => $settings['key_button'] ?? 'Read More',
-                ];
-
-                $config = Nueva_CFRD_Templates::get_config($settings['preset_type'], $keys);
-
-                if (!empty($config['html'])) {
-                    $settings['custom_template'] = $config['html'];
-                }
-                if (!empty($config['css'])) {
-                    $settings['nueva_custom_css'] .= "\n" . $config['css'];
-                }
-                if (!empty($config['wrapper_class'])) {
-                    $this->add_render_attribute('wrapper', 'class', $config['wrapper_class']);
-                }
-                if (!empty($config['change_wrapper_tag'])) {
-                    $settings['wrapper_tag'] = $config['change_wrapper_tag'];
-                    $settings['pre_wrapper_html'] = $config['pre_wrapper_html'] ?? '';
-                    $settings['post_wrapper_html'] = $config['post_wrapper_html'] ?? '';
-                }
-                $this->add_render_attribute('wrapper', 'data-preset', $settings['preset_type']);
-            }
-        }
+        // Note: Preset Logic removed in favor of JS injection in Editor.
+        // We rely on what is saved in 'custom_template' and 'nueva_custom_css'.
 
         // 2. Output Custom CSS
         if (!empty($settings['nueva_custom_css'])) {
@@ -300,11 +298,19 @@ class Nueva_CFRD_Widget_Custom extends Nueva_CFRD_Widget_Base
 
         $wrapper_args = [
             'tag' => $settings['wrapper_tag'] ?? 'div',
-            'pre_html' => $settings['pre_wrapper_html'] ?? '',
+            'pre_html' => $settings['pre_wrapper_html'] ?? '', // Only set by JS hidden field if added, currently standard controls don't have pre_html exposed but we can add later if needed. For now sticking to tag.
             'post_html' => $settings['post_wrapper_html'] ?? '',
-            'class' => $this->get_render_attribute_string('wrapper'),
+            'class' => $settings['wrapper_custom_class'] ?? '',
             'attrs' => $this->get_render_attribute_string('wrapper'),
         ];
+
+        // Inject preset data attr derived from settings if needed, or rely on JS?
+        // We can just add data-preset if we really want to track it
+        if (!empty($settings['preset_type'])) {
+            // We can't easily add attributes to the renderer's wrapper blindly without using $renderer calls.
+            // But $wrapper_args handles 'attrs'.
+            $wrapper_args['attrs'] .= ' data-preset="' . esc_attr($settings['preset_type']) . '"';
+        }
 
         // Ensure we pass the template to the renderer
         echo $renderer->render_custom_loop($settings['custom_template'] ?? '', $wrapper_args);
