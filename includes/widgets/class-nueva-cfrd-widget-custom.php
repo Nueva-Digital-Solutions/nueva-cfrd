@@ -106,28 +106,7 @@ class Nueva_CFRD_Widget_Custom extends Nueva_CFRD_Widget_Base
         $this->end_controls_section();
 
         // Custom Loop Template (Hook)
-        // Prepare Wrapper Args from settings/attributes
-        $wrapper_args = [
-            'tag' => $settings['wrapper_tag'] ?? 'div',
-            'pre_html' => $settings['pre_wrapper_html'] ?? '',
-            'post_html' => $settings['post_wrapper_html'] ?? '',
-            'class' => $this->get_render_attribute_string('wrapper', 'class'), // Getting just value not full string? No, Elementor uses get_render_attribute_string returning 'class="..."'
-            // We need just the value string for our renderer manual build, OR parse it.
-            // Let's manually access attributes array if possible or use a custom method.
-            // Simplified:
-            'class' => isset($settings['preset_type']) && $settings['preset_type'] === 'slider' ? 'swiper nueva-cfrd-slider' : '',
-            // Ideally we used $this->add_render_attribute above, but getting raw val is tricky in Elementor 
-            // without outputting the whole attribute string.
-        ];
-
-        // Quick Fix for Table
-        if (isset($settings['wrapper_tag'])) {
-            $wrapper_args['tag'] = $settings['wrapper_tag'];
-            $wrapper_args['pre_html'] = $settings['pre_wrapper_html'];
-            $wrapper_args['post_html'] = $settings['post_wrapper_html'];
-        }
-
-        echo $renderer->render_custom_loop($settings['custom_template'], $wrapper_args);
+        $this->register_content_controls();
     }
 
     protected function register_content_controls()
