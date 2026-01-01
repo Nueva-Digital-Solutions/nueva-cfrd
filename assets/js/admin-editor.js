@@ -1,28 +1,28 @@
 jQuery(window).on('elementor:init', function () {
+    console.log('Nueva CFRD: Editor Init detected');
+
     elementor.hooks.addAction('panel/open_editor/widget/nueva_cfrd_custom', function (panel, model, view) {
+        console.log('Nueva CFRD: Panel Opened for widget', model.get('id'));
 
         // Function to inject preset code
         const injectPreset = function (presetType) {
+            console.log('Nueva CFRD: Injecting Preset', presetType);
+
             if (!window.nuevaTemplates || !window.nuevaTemplates[presetType]) {
+                console.warn('Nueva CFRD: Preset not found in window.nuevaTemplates', window.nuevaTemplates);
                 return;
             }
 
             const config = window.nuevaTemplates[presetType];
             const settings = model.get('settings');
 
-            // We need to trigger change to save settings? 
-            // Elementor controls are tricky. We should try to update the MODEL first.
-            // But updating model doesn't always reflect in UI inputs immediately if they are already rendered.
-            // So we target the input fields.
-
-            // HTML Control
+            // 1. Prepare HTML
             let titleKey = settings.get('key_title') || 'title';
             let descKey = settings.get('key_desc') || 'description';
             let imgKey = settings.get('key_image') || 'image';
             let linkKey = settings.get('key_link') || 'link';
             let btnText = settings.get('key_button') || 'Read More';
 
-            // Simple replace placeholders in HTML
             let html = config.html
                 .replace(/{{key_title}}/g, '{{' + titleKey + '}}')
                 .replace(/{{key_desc}}/g, '{{' + descKey + '}}')
@@ -30,33 +30,44 @@ jQuery(window).on('elementor:init', function () {
                 .replace(/{{key_link}}/g, '{{' + linkKey + '}}')
                 .replace(/{{key_button}}/g, btnText);
 
-            // Update Control Values
-            // Note: 'custom_template' is the control name
+            // 2. Inject HTML Control (custom_template)
+            // Model Update (Source of Truth)
+            model.setSetting('custom_template', html);
 
-            // Helper to set value
+            // Force UI Update (CodeMirror often needs direct interaction)
+            var $htmlControl = panel.$el.find('[data-setting="custom_template"]');
+            if ($htmlControl.length) {
+                $htmlControl.val(html).trigger('input');
+                // If it's a code mirror instance? Elementor handles input event usually.
+            }
+            // Fallback trigger
             elementor.channels.editor.trigger('change:setting', 'custom_template', html);
-            elementor.channels.editor.trigger('input:setting', 'custom_template', html); // Trigger updates
 
-            // CSS Control
+
+            // 3. Inject CSS Control (n_css_code)
             if (config.css) {
-                // Prepend or replace? Let's append if empty, or replace?
-                // User wants presets, so we probably replace to show it working.
-                elementor.channels.editor.trigger('input:setting', 'n_css_code', config.css);
                 model.setSetting('n_css_code', config.css);
+
+                var $cssControl = panel.$el.find('[data-setting="n_css_code"]');
+                if ($cssControl.length) {
+                    $cssControl.val(config.css).trigger('input');
+                }
+                // Fallback trigger
+                elementor.channels.editor.trigger('change:setting', 'n_css_code', config.css);
             }
 
-            // Wrapper Controls
+            // 4. Inject Wrapper Controls
             if (config.change_wrapper_tag) {
-                elementor.channels.editor.trigger('input:setting', 'wrapper_tag', config.change_wrapper_tag);
                 model.setSetting('wrapper_tag', config.change_wrapper_tag);
+                // Select boxes usually update fine with model setSetting but strictly:
+                panel.$el.find('[data-setting="wrapper_tag"]').val(config.change_wrapper_tag).trigger('change');
             }
             if (config.wrapper_class) {
-                elementor.channels.editor.trigger('input:setting', 'wrapper_custom_class', config.wrapper_class);
                 model.setSetting('wrapper_custom_class', config.wrapper_class);
+                panel.$el.find('[data-setting="wrapper_custom_class"]').val(config.wrapper_class).trigger('input');
             }
 
-            // Force refresh can be helped by setting a timer to 'custom' source back?
-            // No, keeping it on 'preset' is fine as long as user knows it initiated the code.
+            console.log('Nueva CFRD: Injection Complete');
         };
 
         // Listen to Preset Change
@@ -64,20 +75,20 @@ jQuery(window).on('elementor:init', function () {
             const newPreset = model.getSetting('preset_type');
             const source = model.getSetting('template_source');
 
-            // Should we confirm overwrite?
+            // Only auto-inject if Template Source is explicitly "Preset"
             if (source === 'preset') {
-                if (confirm('This will overwrite your current HTML/CSS code with the ' + newPreset + ' preset. Continue?')) {
+                if (confirm('Overwrite current HTML/CSS with ' + newPreset + ' preset?')) {
                     injectPreset(newPreset);
                 }
             }
         });
 
-        // Also listen to 'template_source' change to 'preset' to trigger initial load?
+        // Listen to Template Source Change
         model.on('change:template_source', function () {
             if (model.getSetting('template_source') === 'preset') {
-                // Maybe trigger current preset?
                 const currentPreset = model.getSetting('preset_type');
-                if (confirm('Apply ' + currentPreset + ' preset code now?')) {
+                // Confirm just to be polite and safe against accidental clicks
+                if (confirm('Load code for ' + currentPreset + ' preset?')) {
                     injectPreset(currentPreset);
                 }
             }
